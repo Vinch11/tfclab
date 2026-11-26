@@ -11,6 +11,14 @@ test('Ironman : cibles par segment, curseur et règles', async ({ page }, info) 
   // Glucides individualisés : apport conseillé et raison (dépense + marge) sur le vélo et la course.
   await expect(page.getByText('Glucides à prendre')).toHaveCount(2);
   await expect(page.getByText(/dépense ≈ \d+ g\/h/).first()).toBeVisible();
+  // Détail vélo : terrain, NP, plan de ravitaillement ; liste à préparer.
+  await page.getByRole('button', { name: /Détail vélo/ }).click();
+  await expect(page.getByText('Puissance selon le terrain')).toBeVisible();
+  await expect(page.getByText('Côte longue (plus de 5 min)')).toBeVisible();
+  await expect(page.getByText(/barre \(20 g\)/).first()).toBeVisible();
+  await page.getByRole('button', { name: /Détail course/ }).click();
+  await expect(page.getByText('Allure par portion')).toBeVisible();
+  await expect(page.getByText('Ravitaillement à préparer')).toBeVisible();
   // Rien ne déborde horizontalement sur téléphone.
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(1);

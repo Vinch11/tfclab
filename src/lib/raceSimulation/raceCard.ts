@@ -23,6 +23,8 @@ import { estimateRunSplitMin, V_SEUIL_FRACTION_BY_AMBITION, normalizeToRunSplitA
 import { anchoredBikeGrid, anchoredRunGrid, type AnchoredGrid, type AnchoredGridSnapshot } from "@/lib/zones/anchoredZoneGrid";
 import type { SheetBlockId } from "@/lib/snapshotSheet";
 import { planRaceFuel, type FuelPlan } from "./raceFuel";
+import { bikeDetail, runDetail, segmentFeed, type BikeDetail, type RunDetail, type SegmentFeed } from "./raceDetail";
+import { DEFAULT_PRODUCTS, PRODUCT_LABEL, productText, type RaceProducts } from "./raceNutritionProfile";
 
 export type RaceKind = "IM" | "703" | "Olympic" | "Sprint" | "Marathon" | "Semi" | "10K";
 export type RaceSupport = { kind: RaceKind } | { kind: null; reason: "not_needed" | "trail" | "unknown" };
@@ -76,6 +78,11 @@ export interface RaceCardAthlete {
   vlamaxRun?: { value: number; measured: boolean } | null;
   /** Glucides tolérés à l'entraînement (g/h, fiche athlète). */
   carbToleranceGH?: number | null;
+  /** Taux de sueur testé (ml/h) et sueur salée (fiche athlète). */
+  sweatRateMlH?: number | null;
+  saltySweater?: boolean | null;
+  /** Produits de course de l'athlète (sinon produits types). */
+  products?: RaceProducts | null;
   /** Bilan (FTP, allure seuil, VMA, CP/CS confirmées, provenance, FC, chronos). */
   snapshot: (AnchoredGridSnapshot & {
     time_10k_sec?: number | null; time_10k_date?: string | null; time_half_sec?: number | null; time_half_date?: string | null;
@@ -106,6 +113,8 @@ export interface RaceSegment {
   timeRange: [number, number] | null;
   carbs: { text: string; why: string; gh: [number, number]; burnGH: number | null } | null;
   hr: string | null;
+  /** Détail terrain, passages, hydratation et plan de ravitaillement (vélo et course). */
+  detail?: { bike?: BikeDetail; run?: RunDetail; feed?: SegmentFeed };
   confidence: Confidence;
   source: string;
   note?: string;
@@ -125,9 +134,12 @@ export interface RaceCard {
   ambitionAssumed: boolean;
   bike: RaceBikePowerResult | null;
   fuel: { method: FuelPlan["method"]; glycogenG: number | null; needG: number | null; supplyG: number | null; warning: string | null; notes: string[] };
+  /** Ravitaillement : produits utilisés, liste à préparer, avant le départ. */
+  nutrition: { products: { label: string; text: string; custom: boolean }[]; shopping: string[]; preRace: string[]; sweatMeasured: boolean };
   run: { csKmh: number; measured: boolean; source: string; standalone: boolean; fractionOfCs: number; recorded: { timeSec: number; date: string | null } | null } | null;
 }
 
+const round10 = (x: number) => Math.round(x / 10) * 10;
 const positive = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v) && v > 0;
 export const fmtPace = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, "0")}`;
 export const fmtDuration = (min: number) => {
@@ -187,12 +199,14 @@ export function buildRaceCard(input: RaceCardInput): RaceCard {
   // ── Vélo ──
   let bike: RaceBikePowerResult | null = null;
   let bikeMin: number | null = null;
+  let bikeFtp: number | null = null;
   const bikeGrid = snap ? anchoredBikeGrid({ ...snap, ftp: athlete.ftpW ?? snap.ftp, weight_kg: athlete.weightKg ?? snap.weight_kg }, { ambition, fcMax: athlete.fcMax, today }) : null;
   if (tri && d.bike) {
     // FTP du bilan, sinon CP confirmée × 0,965 (même règle que la grille de zones).
     const ftp = positive(athlete.ftpW) ? athlete.ftpW : bikeGrid?.source === "critical_confirmed" ? bikeGrid.critical * 0.965 : null;
     if (!ftp) missing.push({ label: "FTP ou puissance critique", block: "bike", why: "puissance et temps vélo" });
     if (!positive(athlete.weightKg)) missing.push({ label: "Poids", block: "ctx", why: "vitesse donc temps vélo (durée type utilisée sinon)" });
+    bikeFtp = ftp;
     bike = ftp ? raceBikePower({ objective: kind, ambition, ftpW: ftp, weightKg: athlete.weightKg, tteMin: athlete.tteBikeMin }) : null;
     if (bike) {
       const timeAt = (w: number) => positive(athlete.weightKg) ? (d.bike! / raceBikeSpeedKmh(w, athlete.weightKg, bike!.ambition)) * 60 : bike!.bikeHours * 60 * Math.pow(bike!.centerW / w, 1 / 3);
@@ -266,11 +280,52 @@ export function buildRaceCard(input: RaceCardInput): RaceCard {
   }
   if (!positive(athlete.carbToleranceGH) && sportSegs.some(s => (s.timeMin ?? 0) >= 90)) missing.push({ label: "Glucides tolérés à l'entraînement", block: "ctx", why: "plafond personnel des glucides (90 g/h vélo, 60 g/h course sinon)" });
 
+  // ── Détail terrain, passages, hydratation et plan de ravitaillement ──
+  const products: RaceProducts = athlete.products ?? { gel: { ...DEFAULT_PRODUCTS.gel, custom: false }, bar: { ...DEFAULT_PRODUCTS.bar, custom: false }, drink: { ...DEFAULT_PRODUCTS.drink, custom: false } };
+  const feedProfile = { weightKg: athlete.weightKg, sweatRateMlH: positive(athlete.sweatRateMlH) ? athlete.sweatRateMlH : null, salty: athlete.saltySweater ?? null, heat: !!input.heat, products };
+  const raceMinutes = segments.reduce((a, x) => a + (x.timeMin ?? 0), 0);
+  let clock = 0;
+  for (const seg of segments) {
+    const start = lcw ? 0 : clock;
+    clock += seg.timeMin ?? 0;
+    if (seg.timeMin == null || !seg.target || !seg.distanceKm) continue;
+    if (seg.sport === "bike" && bike && bikeFtp && tri) {
+      seg.detail = { bike: bikeDetail(kind as "IM" | "703" | "Olympic" | "Sprint", { centerW: bike.centerW, rangeW: bike.rangeW, ftpW: bikeFtp, weightKg: athlete.weightKg, distanceKm: seg.distanceKm, timeMin: seg.timeMin, startClockMin: start }) };
+    } else if (seg.sport === "run") {
+      seg.detail = { run: runDetail(kind, { paceSec: seg.target.value, distanceKm: seg.distanceKm, timeMin: seg.timeMin, startClockMin: start, afterBike: tri && !lcw, ambition }) };
+    } else continue;
+    if (seg.timeMin >= 30) seg.detail.feed = segmentFeed({ sport: seg.sport, kind, minutes: seg.timeMin, raceMin: lcw ? seg.timeMin : raceMinutes, startClockMin: start, carbsGH: seg.carbs?.gh ?? null, profile: feedProfile });
+  }
+  const feeds = segments.map(s => ({ sport: s.sport, f: s.detail?.feed })).filter((x): x is { sport: SegmentSport; f: SegmentFeed } => !!x.f);
+  const total = (k: "gel" | "bar" | "salt") => feeds.reduce((a, x) => a + (x.f.counts[k] ?? 0), 0);
+  const drinkMl = feeds.reduce((a, x) => a + x.f.drinkMl, 0);
+  const bikeFeed = feeds.find(x => x.sport === "bike")?.f;
+  const bikeMl = bikeFeed ? bikeFeed.drinkMl + bikeFeed.waterMl : 0;
+  const shopping = [
+    total("gel") ? `${total("gel")} × ${productText(products.gel)}${raceMinutes >= 90 ? " + 1 pour le départ" : ""}` : null,
+    total("bar") ? `${Math.ceil(total("bar"))} × ${productText(products.bar)}` : null,
+    drinkMl ? `${products.drink.name} : ${(drinkMl / 1000).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} L au total, soit ${Math.ceil(drinkMl / (products.drink.volumeMl ?? 500))} doses de ${products.drink.volumeMl ?? 500} ml` : null,
+    bikeMl ? `Vélo : ${Math.ceil(bikeMl / 750)} bidon${Math.ceil(bikeMl / 750) > 1 ? "s" : ""} de 750 ml au total (${tri && (kind === "IM" || kind === "703") ? "2 au départ, le reste aux ravitos" : "au départ"})` : null,
+    total("salt") ? `${total("salt")} capsules de sel (≈ 200 mg)` : null,
+  ].filter((x): x is string => !!x);
+  if (shopping.length) shopping.push("Rien de nouveau le jour J : uniquement des produits testés à l'entraînement.");
+  const w = positive(athlete.weightKg) ? athlete.weightKg : null;
+  const longRace = raceMinutes >= 90;
+  const preRace = longRace ? [
+    `${tri ? "Petit-déjeuner" : "Repas"} 3 h avant : 1 à 2 g de glucides par kg${w ? ` (≈ ${round10(w)}–${round10(w * 2)} g)` : ""}, pauvre en fibres et en graisses.`,
+    raceMinutes >= 180 ? `Les 2 jours avant : 8 à 10 g de glucides par kg et par jour${w ? ` (≈ ${round10(w * 8)}–${round10(w * 10)} g)` : ""}.` : "La veille : repas riche en glucides, habituel, sans excès.",
+    `${tri ? "15 min avant le départ" : "10–15 min avant le départ"} : 1 ${products.gel.name.toLowerCase()} avec quelques gorgées d'eau.`,
+    feedProfile.salty ? "Sueur salée : 500 ml de boisson avec du sodium (≈ 500–1 000 mg) dans les 2 h avant." : "Boire 5 à 7 ml par kg 2 à 4 h avant, puis rien de plus que la soif.",
+  ] : [];
+  const nutrition = { products: (["gel", "bar", "drink"] as const).filter(k => feeds.length && (k !== "bar" || total("bar"))).map(k => ({ label: PRODUCT_LABEL[k], text: productText(products[k]), custom: products[k].custom })),
+    shopping, preRace, sweatMeasured: feedProfile.sweatRateMlH != null };
+  if (feeds.length && feedProfile.sweatRateMlH == null && raceMinutes >= 90) missing.push({ label: "Taux de sueur testé", block: "ctx", why: "quantité à boire (estimée sinon)" });
+
   const partial = segments.some(s => s.timeMin == null);
   const totalMin = segments.length && !lcw ? segments.reduce((s, x) => s + (x.timeMin ?? 0), 0) : null;
   const totalRange: [number, number] | null = totalMin != null ? [segments.reduce((s, x) => s + (x.timeRange?.[0] ?? 0), 0), segments.reduce((s, x) => s + (x.timeRange?.[1] ?? 0), 0)] : null;
 
-  return { kind, label: RACE_LABEL[kind], lcw, segments, fuel, totalMin: totalMin && totalMin > 0 ? totalMin : null, totalRange, partial, rules: raceRules(kind, lcw, bike, segments.find(s => s.sport === "run") ?? null), missing, ambitionAssumed, bike, run };
+  return { kind, label: RACE_LABEL[kind], lcw, segments, fuel, nutrition, totalMin: totalMin && totalMin > 0 ? totalMin : null, totalRange, partial, rules: raceRules(kind, lcw, bike, segments.find(s => s.sport === "run") ?? null), missing, ambitionAssumed, bike, run };
 }
 
 function normalizeAmbitionKey(a: string | null | undefined): string {

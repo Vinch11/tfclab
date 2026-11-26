@@ -68,7 +68,7 @@ describe("carte Ironman d'Emanuela", () => {
     expect(card.segments.find(s => s.sport === "bike")!.carbs!.gh).toEqual([75, 90]);
     expect(card.segments.find(s => s.sport === "run")!.carbs!.gh[1]).toBeLessThanOrEqual(60);
     expect(card.fuel.method).toBe("guideline");
-    expect(card.missing.map(m => m.label)).toEqual(["Glucides tolérés à l'entraînement"]);
+    expect(card.missing.map(m => m.label)).toEqual(["Glucides tolérés à l'entraînement", "Taux de sueur testé"]);
   });
   it("curseurs : +10 W fait gagner du temps mais sort de la charge visée", () => {
     const w = bikeWhatIf(card, 10, 52)!;
@@ -82,7 +82,7 @@ describe("carte Ironman d'Emanuela", () => {
 describe("pas de valeurs inventées", () => {
   it("données manquantes listées avec le bloc de la fiche, total partiel", () => {
     const card = buildRaceCard({ kind: "IM", athlete: { ...emanuela, ambition: null, cssSecPer100: null, weightKg: null, snapshot: { ...emanuela.snapshot!, weight_kg: null } } });
-    expect(card.missing.map(m => m.block)).toEqual(["athlete", "swim", "ctx", "ctx"]);
+    expect(card.missing.map(m => m.block)).toEqual(["athlete", "swim", "ctx", "ctx", "ctx"]);
     expect(card.partial).toBe(true);
     expect(card.segments[0].confidence).toBe("missing");
   });

@@ -43,7 +43,7 @@ const criticalLabel = (c: StoredCriticalSport) => (c.status === "confirmed" ? "c
 /** Durability Day (deux blocs de 10 min) : découplage en %, enregistré comme test et non dans le bilan. */
 export interface SheetDurabilityPair { sport: "bike" | "run"; decouplingPct: number; day: string }
 
-export interface SheetAthlete { sex?: string | null; birthDate?: string | null; carbToleranceGH?: number | null }
+export interface SheetAthlete { sex?: string | null; birthDate?: string | null; carbToleranceGH?: number | null; sweatRateMlH?: number | null; saltySweater?: boolean | null; products?: string[] }
 const ageAt = (birth: string, on: string) => { const b = new Date(birth + "T00:00:00Z"), d = new Date(on + "T00:00:00Z"); let a = d.getUTCFullYear() - b.getUTCFullYear(); if (d.getUTCMonth() < b.getUTCMonth() || (d.getUTCMonth() === b.getUTCMonth() && d.getUTCDate() < b.getUTCDate())) a--; return a; };
 
 const hms = (sec: number) => { const t = Math.round(sec), h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), x = t % 60; return h ? `${h}:${String(m).padStart(2, "0")}:${String(x).padStart(2, "0")}` : `${m}:${String(x).padStart(2, "0")}`; };
@@ -91,6 +91,8 @@ export function buildSnapshotSheet(s: SheetSnapshot, extras: { durabilityPairs?:
     ok(s.fc_max) ? { label: "FC max", value: `${s.fc_max} bpm` } : null,
     ok(s.fc_repos) ? { label: "FC repos", value: `${s.fc_repos} bpm` } : null,
     who ? (ok(who.carbToleranceGH) ? { label: "Glucides tolérés", value: `${who.carbToleranceGH} g/h` } : { label: "Glucides tolérés", value: "non testés", source: "plafond général dans la simulation" }) : null,
+    who ? { label: "Sueur", value: [ok(who.sweatRateMlH) ? `${who.sweatRateMlH} ml/h` : "non testée", who.saltySweater ? "salée" : who.saltySweater === false ? "peu salée" : ""].filter(Boolean).join(" · "), source: ok(who.sweatRateMlH) ? undefined : "estimée dans la simulation" } : null,
+    who ? { label: "Produits de course", value: who.products?.length ? who.products.join(" · ") : "produits types", source: who.products?.length ? undefined : "gel 25 g, barre 40 g, iso 30 g / 500 ml" } : null,
   ].filter(Boolean) as SheetRow[], [sexText && age != null ? `${sexText}, ${age} ans` : who ? "Sexe/âge à renseigner" : "", ok(s.weight_kg) ? `${fr(s.weight_kg, 1)} kg` : "", ok(s.fc_max) ? `FC max ${s.fc_max}` : "", ok(s.fc_repos) ? `FC repos ${s.fc_repos}` : ""]);
 
   // Vélo
