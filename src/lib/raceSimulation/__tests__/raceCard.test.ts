@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildRaceCard, raceKindFromObjective, standaloneRun, bikeWhatIf, runWhatIf, carbsAdvice, type RaceCardAthlete } from "@/lib/raceSimulation/raceCard";
+import { buildRaceCard, raceKindFromObjective, standaloneRun, bikeWhatIf, runWhatIf, type RaceCardAthlete } from "@/lib/raceSimulation/raceCard";
 import { raceOptions, simulationHiddenFor, simulationUnavailable } from "@/lib/raceSimulation/raceCardData";
 import { compareResult, parseRaceTime, snapshotPrediction, withRaceResult, readRaceResults } from "@/lib/raceSimulation/raceResults";
 import { buildRaceCardHTML } from "@/lib/raceSimulation/buildRaceCardHTML";
@@ -64,9 +64,11 @@ describe("carte Ironman d'Emanuela", () => {
     const sum = card.segments.reduce((a, s) => a + (s.timeMin ?? 0), 0);
     expect(card.totalMin).toBeCloseTo(sum, 5);
     expect(card.totalRange![0]).toBeLessThan(card.totalMin!); expect(card.totalRange![1]).toBeGreaterThan(card.totalMin!);
-    expect(card.segments.find(s => s.sport === "bike")!.carbs!.gh).toEqual([60, 90]);
+    // Sans VLamax ni tolérance : repère général par durée.
+    expect(card.segments.find(s => s.sport === "bike")!.carbs!.gh).toEqual([75, 90]);
     expect(card.segments.find(s => s.sport === "run")!.carbs!.gh[1]).toBeLessThanOrEqual(60);
-    expect(card.missing).toEqual([]);
+    expect(card.fuel.method).toBe("guideline");
+    expect(card.missing.map(m => m.label)).toEqual(["Glucides tolérés à l'entraînement"]);
   });
   it("curseurs : +10 W fait gagner du temps mais sort de la charge visée", () => {
     const w = bikeWhatIf(card, 10, 52)!;
@@ -80,7 +82,7 @@ describe("carte Ironman d'Emanuela", () => {
 describe("pas de valeurs inventées", () => {
   it("données manquantes listées avec le bloc de la fiche, total partiel", () => {
     const card = buildRaceCard({ kind: "IM", athlete: { ...emanuela, ambition: null, cssSecPer100: null, weightKg: null, snapshot: { ...emanuela.snapshot!, weight_kg: null } } });
-    expect(card.missing.map(m => m.block)).toEqual(["athlete", "swim", "ctx"]);
+    expect(card.missing.map(m => m.block)).toEqual(["athlete", "swim", "ctx", "ctx"]);
     expect(card.partial).toBe(true);
     expect(card.segments[0].confidence).toBe("missing");
   });
@@ -88,10 +90,6 @@ describe("pas de valeurs inventées", () => {
     const card = buildRaceCard({ kind: "10K", athlete: { ...emanuela, snapshot: { date: "2026-11-25" } } });
     expect(card.segments[0].target).toBeNull();
     expect(card.missing[0].block).toBe("run");
-  });
-  it("glucides : rien sous 1 h, 60–90 g/h au-delà de 2 h 30 (Jeukendrup 2014)", () => {
-    expect(carbsAdvice("run", 50, 50)).toBeNull();
-    expect(carbsAdvice("bike", 300, 600)!.gh).toEqual([60, 90]);
   });
 });
 

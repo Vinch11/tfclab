@@ -44,6 +44,8 @@ export function RaceCardBody({ card, weightKg, athleteId, raceKey, raceDate, ref
 
       <div className="space-y-2">{card.segments.map((s, i) => <SegmentCard key={`${s.sport}-${i}`} s={s} />)}</div>
 
+      {card.fuel.warning && <Card className="border-amber-500/40 bg-amber-500/5"><CardContent className="p-3 text-sm">{card.fuel.warning}</CardContent></Card>}
+
       <WhatIf card={card} weightKg={weightKg} />
 
       <Card><CardHeader className="pb-2"><CardTitle className="text-base flex items-center gap-2"><Flag className="h-4 w-4 text-primary" />Les règles du jour</CardTitle></CardHeader>
@@ -82,10 +84,11 @@ function SegmentCard({ s }: { s: RaceSegment }) {
             {s.timeRange && <p className="text-xs text-muted-foreground tabular-nums">{fmtDuration(s.timeRange[0])} – {fmtDuration(s.timeRange[1])}</p>}</div>
         </div>
       ) : <p className="text-sm text-muted-foreground">{s.source}</p>}
-      {(s.hr || s.carbs) && (
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-          {s.hr && <span><span className="text-muted-foreground">FC repère</span> {s.hr}</span>}
-          {s.carbs && <span><span className="text-muted-foreground">Glucides</span> {s.carbs.text}</span>}
+      {s.hr && <p className="text-sm"><span className="text-muted-foreground">FC repère</span> {s.hr}</p>}
+      {s.carbs && (
+        <div className="rounded-lg bg-muted/40 px-3 py-2">
+          <p className="text-sm"><span className="text-muted-foreground">Glucides à prendre</span> <b className="tabular-nums">{s.carbs.text}</b></p>
+          <p className="text-xs text-muted-foreground">{s.carbs.why}</p>
         </div>
       )}
       {s.note && <p className="text-xs text-muted-foreground">{s.note}</p>}
@@ -151,9 +154,10 @@ function CoachDetails({ card, athleteId }: { card: RaceCard; athleteId: string |
         <CollapsibleContent><CardContent className="pt-0 space-y-2 text-sm">
           {card.segments.filter(s => !s.sport.startsWith("t")).map((s, i) => <p key={i}><b>{s.label}</b> · {s.source}</p>)}
           {card.ambitionAssumed && <p className="text-amber-700 dark:text-amber-400">Ambition non renseignée : calcul fait en age-group.</p>}
+          <FuelDetails card={card} />
           {card.run?.recorded && <p><b>Chrono enregistré dans la fiche</b> · {fmtRaceTime(card.run.recorded.timeSec)}{card.run.recorded.date ? ` (${card.run.recorded.date.split("-").reverse().join("/")})` : ""}</p>}
           {nolioBest && <p><b>Meilleur temps Nolio sur la distance</b> · {fmtRaceTime(nolioBest)}</p>}
-          <p className="text-xs text-muted-foreground">Sources : course seule calée sur Smyth et Muniz-Pumares 2020 (25 000 marathoniens) ; vélo par la charge visée (TSS) et le modèle de vitesse ; natation CSS + 2 à 5 % ; glucides selon Jeukendrup 2014. Transitions : repères types.</p>
+          <p className="text-xs text-muted-foreground">Sources : course seule calée sur Smyth et Muniz-Pumares 2020 (25 000 marathoniens) ; vélo par la charge visée (TSS) et le modèle de vitesse ; natation CSS + 2 à 5 % ; glucides : dépense du modèle de Mader à la cible, plafonnée par la tolérance testée et les repères de Jeukendrup 2014 (jusqu'à 30, 60 ou 90 g/h selon la durée). Transitions : repères types.</p>
         </CardContent></CollapsibleContent>
       </Card>
     </Collapsible>
@@ -207,5 +211,23 @@ function ResultCard({ card, raceKey, raceDate, refs, snapshotChrono, onSave }: {
           </>
         )}
       </CardContent></Card>
+  );
+}
+
+/** Bilan glucides pour le coach : dépense, réserve, apport prévu. */
+function FuelDetails({ card }: { card: RaceCard }) {
+  const f = card.fuel;
+  const burns = card.segments.filter(s => s.carbs?.burnGH != null);
+  return (
+    <div className="rounded-lg border p-3 space-y-1">
+      <p className="font-medium">Glucides</p>
+      {f.method === "individual"
+        ? <p>Calculés pour cet athlète : glucides brûlés à sa cible ({burns.map(s => `${s.sport === "bike" ? "vélo" : "course"} ≈ ${Math.round(s.carbs!.burnGH!)} g/h`).join(", ")}), avec une marge si la VLamax est estimée.</p>
+        : <p>Repère général par durée : VO₂max, VLamax ou poids manquant pour calculer la dépense.</p>}
+      {f.needG != null && f.glycogenG != null && f.supplyG != null && (
+        <p className="tabular-nums">Sur toute l'épreuve : dépense ≈ {Math.round(f.needG)} g · réserve de glycogène mobilisable ≈ {Math.round(f.glycogenG)} g · apport prévu ≈ {Math.round(f.supplyG - f.glycogenG)} g.</p>
+      )}
+      {f.notes.map(n => <p key={n} className="text-muted-foreground">{n}</p>)}
+    </div>
   );
 }

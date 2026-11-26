@@ -9,6 +9,7 @@ import { buildRaceCard, type RaceCardAthlete, type RaceKind } from "@/lib/raceSi
 
 const ATHLETE: RaceCardAthlete = {
   ambition: "competitor", weightKg: 52, ftpW: 188, cssSecPer100: 110, vo2max: 48, tteBikeMin: null, fcMax: 192,
+  vlamaxBike: { value: 0.2, measured: false }, vlamaxRun: { value: 0.3, measured: false }, carbToleranceGH: 75,
   snapshot: { date: "2026-11-25", ftp: 188, vma: 13, pace_threshold_sec_per_km: 305, fc_max: 192, fc_repos: 58, weight_kg: 52,
     time_marathon_sec: 14292, time_marathon_date: "2027-02-28" },
 };

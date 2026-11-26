@@ -6,6 +6,8 @@
 import type { DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
 import { getEffectiveRefs, getEffectiveSnapshot } from "@/lib/effectiveRefs";
 import { computeTTEEffectif } from "@/lib/tteEffectif";
+import { computeVLamaxEffectif, type VLamaxEffectif } from "@/lib/vlamaxEffectif";
+import { readCarbTolerance } from "./carbTolerance";
 import { normalizeAmbitionLevel } from "@/types/ambitionLevel";
 import { raceKindFromObjective, RACE_LABEL, type RaceCardAthlete, type RaceKind } from "./raceCard";
 
@@ -15,7 +17,11 @@ const ageFrom = (birth: string | null | undefined, today: string) => {
   return Number.isFinite(years) && years > 0 ? Math.floor(years) : null;
 };
 
-export function raceCardAthlete(athlete: DbAthlete | null, snapshots: DbSnapshot[], today = new Date().toISOString().slice(0, 10)): RaceCardAthlete {
+/** VLamax mesurée = verrouillée (labo ou mode Staff), sinon estimation TFCL. */
+const vlamaxOf = (v: VLamaxEffectif | null): { value: number; measured: boolean } | null =>
+  v && typeof v.value === "number" && v.value > 0 ? { value: v.value, measured: !!v.isLocked } : null;
+
+export function raceCardAthlete(athlete: DbAthlete | null, snapshots: DbSnapshot[], today = new Date().toISOString().slice(0, 10), tests: Parameters<typeof computeVLamaxEffectif>[0]["tests"] = []): RaceCardAthlete {
   const refs = getEffectiveRefs(athlete, snapshots);
   const snap = getEffectiveSnapshot(athlete, snapshots);
   const rawAmbition = (athlete?.refs as Record<string, unknown> | null)?.ambition ?? (athlete as unknown as Record<string, unknown> | null)?.ambition ?? null;
@@ -23,7 +29,11 @@ export function raceCardAthlete(athlete: DbAthlete | null, snapshots: DbSnapshot
     ftp: refs.ftp, tss_7d: snap?.tss_7d, tte_mode: snap?.tte_mode, tte_observed_min: snap?.tte_observed_min,
     sport: "bike", objectif: athlete?.goal || "IM", age: ageFrom(athlete?.birth_date, today),
   }) : null;
+  const vla = (sportOverride: "velo" | "cap") => athlete ? computeVLamaxEffectif({ athleteId: athlete.id, objectif: athlete.goal || "IM", activeSnapshotId: athlete.active_snapshot_id ?? null, tests, snapshots, sportOverride }) : null;
   return {
+    vlamaxBike: vlamaxOf(vla("velo")),
+    vlamaxRun: vlamaxOf(vla("cap")),
+    carbToleranceGH: readCarbTolerance(athlete?.refs)?.gh ?? null,
     ambition: typeof rawAmbition === "string" && rawAmbition.trim() ? normalizeAmbitionLevel(rawAmbition) : null,
     weightKg: refs.weightKg,
     ftpW: refs.ftp,

@@ -8,6 +8,9 @@ test('Ironman : cibles par segment, curseur et règles', async ({ page }, info) 
   await expect(page.getByText('Natation 3,8 km')).toBeVisible();
   await expect(page.getByText('Et si… ?')).toBeVisible();
   await expect(page.getByText('Les règles du jour')).toBeVisible();
+  // Glucides individualisés : apport conseillé et raison (dépense + marge) sur le vélo et la course.
+  await expect(page.getByText('Glucides à prendre')).toHaveCount(2);
+  await expect(page.getByText(/dépense ≈ \d+ g\/h/).first()).toBeVisible();
   // Rien ne déborde horizontalement sur téléphone.
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(1);

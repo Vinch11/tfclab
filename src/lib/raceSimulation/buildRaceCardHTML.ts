@@ -26,7 +26,7 @@ export function buildRaceCardHTML(o: { card: RaceCard; athleteName: string; race
   const rows = card.segments.map(s => `<tr><td>${s.day ? `<div class="day">Jour ${s.day}</div>` : ""}${esc(s.label)}</td>
     <td class="t">${s.target ? esc(s.target.text) : s.sport.startsWith("t") ? "—" : "à compléter"}</td>
     <td>${s.timeMin != null ? esc(fmtDuration(s.timeMin)) : "—"}${s.timeRange ? `<div class="note">${esc(fmtDuration(s.timeRange[0]))} – ${esc(fmtDuration(s.timeRange[1]))}</div>` : ""}</td>
-    <td>${s.hr ? esc(s.hr) : "—"}</td><td>${s.carbs ? esc(s.carbs.text) : "—"}</td></tr>`).join("");
+    <td>${s.hr ? esc(s.hr) : "—"}</td><td>${s.carbs ? `${esc(s.carbs.text)}<div class="note">${esc(s.carbs.why)}</div>` : "—"}</td></tr>`).join("");
   const total = card.lcw
     ? `<div class="total"><span>Trois épreuves sur trois jours : chaque jour est une course à part.</span></div>`
     : card.totalMin != null ? `<div class="total"><b>${esc(fmtDuration(card.totalMin))}</b><span>temps prévu${card.totalRange ? ` · fourchette ${esc(fmtDuration(card.totalRange[0]))} – ${esc(fmtDuration(card.totalRange[1]))}` : ""}${card.partial ? " · total partiel (données manquantes)" : ""}</span></div>` : "";
@@ -42,7 +42,7 @@ export function buildRaceCardHTML(o: { card: RaceCard; athleteName: string; race
     <table class="seg"><thead><tr><th>Segment</th><th>Cible</th><th>Temps</th><th>FC repère</th><th>Glucides</th></tr></thead><tbody>${rows}</tbody></table>
     <h2>Les règles du jour</h2><ol>${card.rules.map(r => `<li>${esc(r)}</li>`).join("")}</ol>
     ${garmin}
-    <p class="foot">Prévision Two For Coaching Lab du ${esc(o.generatedAt)} : une fourchette, pas une promesse. Chaleur, vent et parcours la modifient. Les glucides sont des repères à tester à l’entraînement.</p>
+    <p class="foot">Prévision Two For Coaching Lab du ${esc(o.generatedAt)} : une fourchette, pas une promesse. Chaleur, vent et parcours la modifient. Les glucides tiennent compte de ta dépense estimée et de ce que tu as toléré à l’entraînement : teste-les sur une sortie longue avant la course.</p>
   </main>`;
   return reportDocument({ title: `Carte de course · ${o.athleteName}`, body, extraCSS: CSS });
 }

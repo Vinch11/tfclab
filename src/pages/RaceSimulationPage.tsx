@@ -29,7 +29,7 @@ import { buildRaceCardHTML } from "@/lib/raceSimulation/buildRaceCardHTML";
 export default function RaceSimulationPage() {
   const navigate = useNavigate();
   const { currentAthlete } = useAthletes();
-  const { athletes, snapshots, updateAthlete } = useCloudData();
+  const { athletes, snapshots, tests, updateAthlete } = useCloudData();
   const [activeTab, setActiveTab] = useState("simulation");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
   useEffect(() => { localStorage.setItem("vlab-staff-mode", String(staffMode)); }, [staffMode]);
@@ -55,8 +55,11 @@ export default function RaceSimulationPage() {
     if (lcwKey) { if (on) localStorage.setItem(lcwKey, "true"); else localStorage.removeItem(lcwKey); }
   };
 
-  const cardAthlete = useMemo(() => raceCardAthlete(athlete, snapshots), [athlete, snapshots]);
-  const card = useMemo(() => option ? buildRaceCard({ kind: option.kind, lcw, athlete: cardAthlete }) : null, [option, lcw, cardAthlete]);
+  const cardAthlete = useMemo(() => raceCardAthlete(athlete, snapshots, undefined, tests ?? []), [athlete, snapshots, tests]);
+  // Chaleur annoncée : +10 % de glucides brûlés (réglage du jour, gardé par course).
+  const [heat, setHeat] = useState(false);
+  useEffect(() => { setHeat(false); }, [option?.key]);
+  const card = useMemo(() => option ? buildRaceCard({ kind: option.kind, lcw, heat, athlete: cardAthlete }) : null, [option, lcw, heat, cardAthlete]);
 
   const exportCard = () => {
     if (!card || !option) return;
@@ -94,6 +97,10 @@ export default function RaceSimulationPage() {
                   <SelectContent>{options.map(o => <SelectItem key={o.key} value={o.key}>{o.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
+              <label className="flex items-center justify-between gap-3 text-sm min-h-11">
+                <span>Chaleur annoncée <span className="text-muted-foreground">(plus de 25 °C)</span></span>
+                <Switch checked={heat} onCheckedChange={setHeat} />
+              </label>
               {lcwEligible && (
                 <label className="flex items-center justify-between gap-3 text-sm min-h-11">
                   <span>Long Course Weekend <span className="text-muted-foreground">(3 épreuves sur 3 jours)</span></span>
