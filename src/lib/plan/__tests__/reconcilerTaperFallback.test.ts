@@ -23,10 +23,10 @@ import { runReconciler } from "@/lib/plan/planReconciler";
 
 describe("affûtage : fiche hors phase remplacée par une fiche d'affûtage", () => {
   it("sortie longue de développement en affûtage → endurance d'affûtage du même sport", () => {
-    const chunk = { weeks: [{ weekNumber: 30, phase: "taper", theme: "Affûtage", sessions: [
+    const chunk = { weeks: [{ weekNumber: 31, phase: "taper", theme: "Affûtage", sessions: [
       { day: "samedi", sport: "bike", title: "Sortie affûtage", details: "", isKeySession: false, custom: false, catalogId: "BIKE_TT_RACE_PACE", durationMin: 135, zones: ["Z4"] } as PlanSession,
     ] }] } as unknown as PlanChunk;
-    runReconciler([chunk], { 30: { phase: "taper", weekType: "taper" } as never }, 2, undefined, { objectiveKey: "IM", globalTotalWeeks: 32 });
+    runReconciler([chunk], {}, 2, undefined, { objectiveKey: "IM", globalTotalWeeks: 32 });
     expect(chunk.weeks[0].sessions[0].catalogId).toBe("BIKE_TAPER_ENDURANCE");
     expect(chunk.weeks[0].sessions[0].durationMin).toBe(135);
   });
