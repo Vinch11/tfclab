@@ -309,3 +309,13 @@
   .field-head {grid-template-columns:25% 1fr}.field-head>div,.field-body {padding:12px}
 }
 .edition .field-body p+h4 {margin-top:10px}
+@media print {
+  /* Rapport du 27/11/2026 : une liste coupée entre deux pages et un chapitre « carburants » parti seul
+     sur la page suivante (titre orphelin, demi-page vide). Safari respecte mal break-after:avoid :
+     on garde ces blocs courts d'un seul tenant et on resserre le graphique des carburants pour qu'il
+     tienne dans la place restante. */
+  .edition .keep-together,.edition .keep-together li {page-break-inside:avoid;break-inside:avoid}
+  .edition #carburants {page-break-inside:avoid;break-inside:avoid}
+  .edition #carburants .lab-figure {margin:2mm 0;padding:2mm}
+  .edition #carburants .lab-plot {max-width:120mm}
+}

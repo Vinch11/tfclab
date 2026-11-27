@@ -146,7 +146,12 @@ function bikeLandmarks(payload: ZonePayload, table: TargetTable, grid: AnchoredG
   if (positive(fatmaxPct)) add('FatMax', ftp * fatmaxPct / 100, 'Estimation du modèle');
   if (table.racePowerRange) {
     const [lo, hi] = table.racePowerRange;
-    add('Puissance de course · ' + objectiveLabel(payload?.athlete?.goal), (lo + hi) / 2, 'Repère des séances du plan', `${lo}–${hi} W`, [lo, hi]);
+    // Sous Z2 (zone « récupération ») : on dit pourquoi, sinon l'athlète croit à une erreur.
+    const belowZ2 = zoneSpan(table.bikeZonesW, lo, hi) === 'Z1';
+    const why = !belowZ2 ? 'Repère des séances du plan'
+      : table.raceBike?.limitedBy === 'tte' ? 'Volontairement sous Z2 : bornée tant que ta tenue au seuil (TTE) est courte'
+      : 'Volontairement sous Z2 : de longues heures à tenir, puis la course à pied';
+    add('Puissance de course · ' + objectiveLabel(payload?.athlete?.goal), (lo + hi) / 2, why, `${lo}–${hi} W`, [lo, hi]);
   }
   if (grid) {
     add('Premier seuil (estimé)', grid.firstThreshold, `≈ ${pctText(grid.firstThreshold / grid.critical)} de la CP`);

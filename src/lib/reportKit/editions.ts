@@ -143,7 +143,12 @@ export function preparationTimeline(roadmap: Roadmap | null | undefined, goal: s
     ? `${cycles.length} courses · ${roadmap.totalWeeks} semaines de préparation`
     : start ? `${roadmap.totalWeeks} semaines jusqu’à l’objectif` : `Trajectoire type sur ${roadmap.totalWeeks} semaines`;
   const span = (phase: Roadmap['phases'][number]) => {
-    const from = weekDate(start, phase.startWeek);
+    // Juste après une course : le bloc suivant commence le lendemain, pas à la semaine suivante
+    // (la semaine de course s'arrête le jour de la course, il ne doit pas rester de jours sans bloc).
+    const weekStart = weekDate(start, phase.startWeek);
+    const racePrev = cycles.find(c => c.endWeek === phase.startWeek - 1)?.raceDate;
+    const dayAfter = racePrev && /^\d{4}-\d\d-\d\d$/.test(racePrev) ? new Date(Date.parse(racePrev + 'T00:00:00Z') + 86400000).toISOString().slice(0, 10) : null;
+    const from = dayAfter && weekStart && dayAfter < weekStart && dayAfter > (weekDate(start, phase.startWeek - 1) ?? '') ? dayAfter : weekStart;
     // La semaine de course se termine le jour de la course : l'affûtage ne déborde pas après.
     const race = cycles.find(c => phase.endWeek === c.endWeek && phase.startWeek >= c.startWeek)?.raceDate;
     const weekEnd = weekDate(start, phase.endWeek, true);
