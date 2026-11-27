@@ -1,6 +1,6 @@
 import { approvedIdsForFamilies } from "@/lib/plan/demandingSessionFamilies";
 import { protectedRaceWeekType, raceProtectionPrompt, raceProtectionForDay, datedRaceGoals, RACE_DAYS } from '../../../supabase/functions/_shared/raceCalendarProtection';
-import { applyLongRidePhasePolicy, phasePosition, protectDedicatedRideQuota } from "@/engines/plan/longRidePolicy";
+import { applyLongRidePhasePolicy, applyTaperLongSessionFloors, phasePosition, protectDedicatedRideQuota } from "@/engines/plan/longRidePolicy";
 /** The existing generation preparation, extracted unchanged for offline preview.
  * No model, auth, persistence read or write. Same artefacts feed actual generation. */
 import type { PlanAthleteData, PlanConfig } from "@/hooks/useAITrainingPlan";
@@ -502,8 +502,13 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
             phase: phaseCalendar?.[w], weekType, priorities: planConfig.identifiedLimitersRaw,
             isLCW: isLCWFormat, isMaintenance: isIntermediateRunCycle,
           });
+          // Affûtage de la course finale : une séance longue raccourcie progressivement, pas supprimée.
+          const taperFloors = hasProtection ? phaseFloors : applyTaperLongSessionFloors(phaseFloors, {
+            objective: objectiveForQuota, weeksToRace: effTotalWeeks - globalWeekNum, weekType,
+            isLCW: isLCWFormat, isMaintenance: isIntermediateRunCycle,
+          });
           const individualized = applySlFloorIndividualization(
-            phaseFloors, globalWeekNum, weekType, slRampAnchors, injuryRiskForSlFloor,
+            taperFloors, globalWeekNum, weekType, slRampAnchors, injuryRiskForSlFloor,
           );
           if (individualized.reasons.length > 0) {
             slFloorIndividualizationLog.push(`S${w} (globale S${globalWeekNum}): planchers individualisés`);

@@ -157,15 +157,29 @@ export function enrichWithAbsoluteValues(
   sport: SportKind,
 ): string {
   if (!text || !targetTable) return text;
+  // Enchaînement : la partie vélo (avant T2 / « Run » / « Course ») se lit en watts, la suite en allure.
+  if (sport === "brick") {
+    const cut = text.search(/\bT2\b|\bRun\s*[:\d]|\bCourse\s+(?:à\s+pied\s+)?\d|\bCAP\s*[:\d]/i);
+    if (cut > 0) return enrichWithAbsoluteValues(text.slice(0, cut), targetTable, "bike") + enrichWithAbsoluteValues(text.slice(cut), targetTable, "run");
+  }
   let out = text;
 
   const isBike = sport === "bike";
   const isRun = sport === "run" || sport === "trail" || sport === "brick";
   const isSwim = sport === "swim";
 
+  // Fiches écrites avec l'ancien vocabulaire à 6 zones (« Z4a (95-100% FTP) ») :
+  // le pourcentage prescrit fait foi, l'étiquette est recalée sur la grille de
+  // l'athlète (mêmes zones que ses séances et sa montre) — jamais l'inverse.
+  out = harmonizeZoneLabels(out, targetTable, sport);
+  // Allure de course triathlon : la puissance de l'athlète (raceBikePower,
+  // même source que la simulation et les rapports) remplace le % générique.
+  if (isBike || sport === "brick") out = applyRacePower(out, targetTable);
+
   // Ranges de zones ("Z2-Z3", "Z1-Z2", "Z4a-Z4b") — annotés en priorité comme
   // UN bloc pour éviter les rendus contradictoires "Z2 (5:33-6:15/km)-Z3 (…)".
   out = replaceWithAnnotation(out, ZONE_RANGE_RX, (m) => {
+    if (pctFollows(out, m)) return null;
     const cLow = canonicalizeZoneLabel(m[1]);
     const cHigh = canonicalizeZoneLabel(m[2]);
     if (!cLow || !cHigh) return null;
@@ -180,6 +194,7 @@ export function enrichWithAbsoluteValues(
 
   // Zones nues (Z1..Z7 / Z4) — exclut celles absorbées par un range ci-dessus.
   out = replaceWithAnnotation(out, ZONE_RX, (m) => {
+    if (pctFollows(out, m)) return null;
     const canon = canonicalizeZoneLabel(m[0]);
     if (!canon) return null;
     if (isBike && targetTable.ftpW) {
@@ -303,4 +318,87 @@ function collapseTagAnnotations(text: string): string {
     return "";
   });
   return text.replace(m[0], m[0].replace(inner, cleaned));
+}
+
+// ── Cohérence zone ↔ pourcentage et puissance de course (27/11/2026) ──
+/** Un % FTP / % VMA suit la zone dans la même proposition : c'est lui qui sera annoté. */
+function pctFollows(text: string, m: RegExpExecArray): boolean {
+  const after = text.slice(m.index + m[0].length, m.index + m[0].length + 32);
+  const clause = after.split(/[;|.\n]|\s\/\s|\s\+\s/)[0];
+  return /\d{2,3}\s*(?:-\s*\d{2,3}\s*)?%\s*(?:de\s+la\s+)?(?:FTP|VMA)/i.test(clause);
+}
+
+const GRID_ZONES: ZoneId[] = ["Z1", "Z2", "Z3", "Z4a", "Z4b", "Z5", "Z6", "Z7"];
+/** Zone de la grille de l'athlète contenant la valeur (watts ou s/km). */
+function gridZoneOf(ranges: Partial<Record<ZoneId, [number, number]>> | undefined, value: number): ZoneId | null {
+  if (!ranges) return null;
+  let best: { z: ZoneId; d: number } | null = null;
+  for (const z of GRID_ZONES) {
+    const r = ranges[z];
+    if (!r) continue;
+    const lo = Math.min(r[0], r[1]), hi = Math.max(r[0], r[1]);
+    const d = value < lo ? lo - value : value > hi ? value - hi : 0;
+    if (!best || d < best.d) best = { z, d };
+  }
+  return best?.z ?? null;
+}
+/** Bornes (watts ou s/km) couvertes par une étiquette de zone, Z4 = Z4a + Z4b. */
+function labelBounds(ranges: Partial<Record<ZoneId, [number, number]>> | undefined, a: string, b: string): [number, number] | null {
+  const ids = [a, b].flatMap(z => { const c = canonicalizeZoneLabel(z); return c === "Z4" ? ["Z4a", "Z4b"] as ZoneId[] : c ? [c as ZoneId] : []; });
+  const rs = ids.map(z => ranges?.[z]).filter((r): r is [number, number] => !!r);
+  if (!rs.length) return null;
+  const all = rs.flat();
+  return [Math.min(...all), Math.max(...all)];
+}
+const ZONE_ORDER = (z: string) => GRID_ZONES.indexOf(z as ZoneId);
+
+/**
+ * « Z4a (95-100% FTP) » → « Z5 (95-100% FTP) » quand la grille de l'athlète place ce pourcentage
+ * ailleurs. Tolérance de 4 % (FTP) ou 4 s/km : une borne qui touche la zone voisine ne déclenche rien.
+ */
+function harmonizeZoneLabels(text: string, t: TargetTable, sport: SportKind): string {
+  const bike = sport === "bike" || sport === "brick";
+  const run = sport === "run" || sport === "trail";
+  const LABEL_THEN_PCT = new RegExp(`\\b((${ZONE_CORE})(?:\\s*-\\s*(${ZONE_CORE}))?)\\b([^;|.\\n%]{0,28}?)((\\d{2,3})(?:\\s*-\\s*(\\d{2,3}))?\\s*%\\s*(?:de\\s+la\\s+)?(FTP|VMA)\\b)`, "gi");
+  return text.replace(LABEL_THEN_PCT, (whole, labelPart: string, z1: string, z2: string | undefined, gap: string, pctPart: string, p1: string, p2: string | undefined, ref: string) => {
+    const isFtp = ref.toUpperCase() === "FTP";
+    if (/\s\/\s|\s\+\s/.test(gap)) return whole;
+    const lo = Math.min(Number(p1), Number(p2 ?? p1)), hi = Math.max(Number(p1), Number(p2 ?? p1));
+    let ranges: Partial<Record<ZoneId, [number, number]>> | undefined, vLo = 0, vHi = 0, tol = 0;
+    if (isFtp && !run && t.ftpW) {
+      ranges = t.bikeZonesW as Partial<Record<ZoneId, [number, number]>>;
+      vLo = lo / 100 * t.ftpW; vHi = hi / 100 * t.ftpW; tol = 0.04 * t.ftpW;
+    } else if (!isFtp && !bike && t.vmaKmh) {
+      ranges = t.runPacesSecPerKm as Partial<Record<ZoneId, [number, number]>>;
+      vLo = paceFromVma(t.vmaKmh, hi); vHi = paceFromVma(t.vmaKmh, lo); tol = 4;
+    }
+    if (!ranges) return whole;
+    // Étiquette compatible avec le pourcentage (à la tolérance près) : inchangée.
+    const declared = labelBounds(ranges, z1, z2 ?? z1);
+    if (declared && vLo >= declared[0] - tol && vHi <= declared[1] + tol) return whole;
+    const za = gridZoneOf(ranges, vLo), zb = gridZoneOf(ranges, vHi);
+    if (!za || !zb) return whole;
+    const expected = [za, zb].sort((x, y) => ZONE_ORDER(x) - ZONE_ORDER(y));
+    const label = expected[0] === expected[1] ? expected[0] : `${expected[0]}-${expected[1]}`;
+    return label === labelPart ? whole : `${label}${gap}${pctPart}`;
+  });
+}
+
+/** Vocabulaire d'une consigne « allure / puissance de course » (triathlon). */
+const RACE_PACE_PHRASE = /(?:allure|puissance|intensit[ée])\s+(?:de\s+)?(?:course|race)(?:\s+(?:ironman|im|70\.?3|half))?|race[\s-]?pace|(?:puissance|allure|watts?)\s+(?:ironman|im|70\.?3)|\bim\s+power\b|\brace\s+(?:ironman|im|70\.?3)/i;
+
+/**
+ * « allure race Ironman (65-68% FTP) » → « allure race Ironman (116-121W · ta puissance de course) ».
+ * Le pourcentage générique de la fiche est remplacé par la puissance de course de l'athlète.
+ */
+function applyRacePower(text: string, t: TargetTable): string {
+  const race = t.racePowerRange;
+  if (!race || !t.raceBike) return text;
+  const RX = /(\d{2,3})\s*(?:-\s*(\d{2,3}))?\s*%\s*FTP\b/gi;
+  return text.replace(RX, (whole, _a, _b, offset: number) => {
+    const before = text.slice(Math.max(0, offset - 45), offset);
+    const clause = before.split(/[;|.\n]/).pop() ?? "";
+    if (!RACE_PACE_PHRASE.test(clause)) return whole;
+    return `${race[0]}-${race[1]}W · ta puissance de course`;
+  });
 }

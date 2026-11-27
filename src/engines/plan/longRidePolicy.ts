@@ -38,6 +38,31 @@ export function applyLongRidePhasePolicy(floors: SizingFloors, context: LongRide
   return { ...floors, slLongRideMin: min, dedicatedLongRide: true };
 }
 
+/**
+ * Affûtage (27/11/2026, plan Ironman d'Emanuela : sortie la plus longue tombée de 5h40 à 1h15 à J-20).
+ * On réduit le volume total en gardant une séance longue raccourcie progressivement (Mujika 2003,
+ * Bosquet 2007 : baisser le volume, garder fréquence et intensité). Repères de coaching par distance,
+ * en semaines avant la course finale (0 = semaine de course, jamais de plancher).
+ * Plancher MINIMUM : l'individualisation niveau/blessure appliquée ensuite peut encore le réduire.
+ */
+export const TAPER_LONG_SESSION_MIN: Record<string, Record<number, { ride?: number; run?: number }>> = {
+  IM: { 2: { ride: 180, run: 75 }, 1: { ride: 120, run: 60 } },
+  '703': { 2: { ride: 120, run: 60 }, 1: { ride: 90, run: 50 } },
+  MARATHON: { 2: { run: 120 }, 1: { run: 90 } },
+  SEMI: { 2: { run: 90 }, 1: { run: 70 } },
+};
+
+export function applyTaperLongSessionFloors(floors: SizingFloors, context: { objective: string; weeksToRace: number; weekType: WeekType; isLCW?: boolean; isMaintenance?: boolean }): SizingFloors {
+  if (context.weekType !== 'taper' || context.isLCW || context.isMaintenance) return floors;
+  const key = normalizeSizingObjective(context.objective);
+  const ref = TAPER_LONG_SESSION_MIN[key]?.[context.weeksToRace];
+  if (!ref) return floors;
+  const out = { ...floors };
+  if (ref.ride) { out.longRideWeekly = true; out.dedicatedLongRide = true; out.slLongRideMin = Math.max(out.slLongRideMin ?? 0, ref.ride); }
+  if (ref.run) { out.longRunWeekly = true; out.slLongRunMin = Math.max(out.slLongRunMin ?? 0, ref.run); }
+  return out;
+}
+
 /** Use the engine's actual phase calendar, including regenerated windows. */
 export function phasePosition(calendar: Record<number, PeriodizationPhase> | undefined, week: number) {
   const phase = calendar?.[week];
