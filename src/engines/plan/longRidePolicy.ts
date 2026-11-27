@@ -52,14 +52,28 @@ export const TAPER_LONG_SESSION_MIN: Record<string, Record<number, { ride?: numb
   SEMI: { 2: { run: 90 }, 1: { run: 70 } },
 };
 
-export function applyTaperLongSessionFloors(floors: SizingFloors, context: { objective: string; weeksToRace: number; weekType: WeekType; isLCW?: boolean; isMaintenance?: boolean }): SizingFloors {
+/** Plancher retenu seulement s'il reste au moins 45 min de séance longue réalisable avec le catalogue. */
+const TAPER_MIN_USEFUL = 45;
+
+export function applyTaperLongSessionFloors(floors: SizingFloors, context: {
+  objective: string; weeksToRace: number; weekType: WeekType; isLCW?: boolean; isMaintenance?: boolean;
+  /** Durée max des fiches faciles/modérées éligibles cette semaine : le plancher ne la dépasse jamais. */
+  catalogueMaxMin?: { ride?: number; run?: number };
+}): SizingFloors {
   if (context.weekType !== 'taper' || context.isLCW || context.isMaintenance) return floors;
   const key = normalizeSizingObjective(context.objective);
   const ref = TAPER_LONG_SESSION_MIN[key]?.[context.weeksToRace];
   if (!ref) return floors;
+  const cap = (target: number | undefined, max: number | undefined) => {
+    if (!target) return 0;
+    const v = max === undefined ? target : Math.min(target, max);
+    return v >= TAPER_MIN_USEFUL ? v : 0;
+  };
+  const ride = cap(ref.ride, context.catalogueMaxMin?.ride), run = cap(ref.run, context.catalogueMaxMin?.run);
+  if (!ride && !run) return floors;
   const out = { ...floors };
-  if (ref.ride) { out.longRideWeekly = true; out.dedicatedLongRide = true; out.slLongRideMin = Math.max(out.slLongRideMin ?? 0, ref.ride); }
-  if (ref.run) { out.longRunWeekly = true; out.slLongRunMin = Math.max(out.slLongRunMin ?? 0, ref.run); }
+  if (ride) { out.longRideWeekly = true; out.dedicatedLongRide = true; out.slLongRideMin = Math.max(out.slLongRideMin ?? 0, ride); }
+  if (run) { out.longRunWeekly = true; out.slLongRunMin = Math.max(out.slLongRunMin ?? 0, run); }
   return out;
 }
 

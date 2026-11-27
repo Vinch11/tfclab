@@ -23,4 +23,9 @@ describe("affûtage : une séance longue raccourcie progressivement", () => {
   it("un plancher existant plus haut est conservé", () => {
     expect(applyTaperLongSessionFloors({ slLongRideMin: 200 } as never, { objective: "IM", weeksToRace: 2, weekType: "taper" })).toMatchObject({ slLongRideMin: 200 });
   });
+  it("jamais plus long que les fiches d'affûtage disponibles (sinon sauvegarde bloquée)", () => {
+    expect(applyTaperLongSessionFloors(base, { objective: "IM", weeksToRace: 2, weekType: "taper", catalogueMaxMin: { ride: 150, run: 75 } })).toMatchObject({ slLongRideMin: 150, slLongRunMin: 75 });
+    // Moins de 45 min réalisables : pas de plancher imposé.
+    expect(applyTaperLongSessionFloors(base, { objective: "SEMI", weeksToRace: 1, weekType: "taper", catalogueMaxMin: { run: 40 } })).toBe(base);
+  });
 });
