@@ -38,7 +38,7 @@ import {
 } from "../../../supabase/functions/_shared/repairSportingEquivalence";
 import { extractLimiterKeywords } from "@/lib/plan/limiterKeywords";
 import { startToRunMaxSessionMin } from "@/engines/plan/sessionSizingMatrix";
-import { isRaceDaySession, isGenuinelyDemandingSession, demandingSessionCap } from "@/engines/plan/planValidator";
+import { isRaceDaySession, isGenuinelyDemandingSession, demandingSessionCap, demandingSessionDomain } from "@/engines/plan/planValidator";
 import { effectiveSessionQuota, countQuotaSessions } from "../../../supabase/functions/_shared/sessionQuotaAccounting";
 import { isRaceEventTitle } from "../../../supabase/functions/_shared/raceDayIdentity";
 import { isRaceSimIncompatibleWithObjective } from "./raceSimCompatibility";
@@ -116,6 +116,9 @@ export interface ReconcilerCounters {
    *  semaine d'un débutant confirmé (signal de niveau fiable) — DOWNGRADÉE
    *  vers une alternative threshold/easy plutôt que détectée après coup. */
   demanding_accumulation_downgraded?: number;
+  /** Phase spécifique IM/70.3 : séances seuil/VO2max au-delà d'une par semaine remplacées (décision coach 27/11/2026). */
+  specific_intensity_downgraded?: number;
+  specific_intensity_unresolved?: number;
   /** Même détection, mais aucune alternative threshold/easy disponible —
    *  séance conservée telle quelle (jamais de suppression silencieuse), le
    *  conflit reste signalé et sera re-détecté par validateDemandingSessionAccumulation. */
@@ -2110,6 +2113,85 @@ function enforceDemandingAccumulation(
   }
 }
 
+// ── Phase spécifique Ironman / 70.3 (décision coach du 27/11/2026) ──────────
+// En phase spécifique, l'intensité sert l'allure de course : au plus UNE séance
+// au seuil ou VO2max par semaine. Les autres sont remplacées par une séance
+// allure course ou endurance du catalogue (même sport, même durée), et la
+// séance remplacée le dit dans son texte pour que le coach le voie. Les
+// séances à allure de course / allure marathon ne comptent pas. La règle des
+// athlètes confirmés (plus de 3 séances exigeantes autorisées) reste inchangée
+// pour les autres phases et objectifs.
+export const SPECIFIC_PHASE_MAX_INTENSE = 1;
+const SPECIFIC_PHASE_OBJECTIVES = new Set(["IM", "703"]);
+const RACE_PACE_TEXT = /allure\s+(?:de\s+)?(?:course|race|im|ironman|70\.?3|marathon)|race[\s-]?pace|puissance\s+(?:de\s+)?(?:course|ironman|im|70\.?3)|\bim\s+power\b/i;
+export const SPECIFIC_PHASE_NOTE = "Ajusté par TFCL : phase spécifique, une seule séance au seuil ou VO2max par semaine — cette séance remplace une séance intense.";
+
+function enforceSpecificPhaseIntensity(
+  chunks: PlanChunk[],
+  counters: ReconcilerCounters,
+  logs: string[],
+  ledger?: UsageLedger,
+  restrictToIds?: Set<string>,
+  phaseCtx?: PhaseCtx,
+  quotasByWeek?: Record<number, WeekQuotaEntry>,
+  intermediateRaces?: IntermediateRaceDay[] | null,
+): void {
+  if (!phaseCtx?.objectiveKey || !SPECIFIC_PHASE_OBJECTIVES.has(phaseCtx.objectiveKey)) return;
+  // Seulement le cycle de la course finale (IM / 70.3) : un cycle marathon ou 10 km avant garde ses règles.
+  const lastOtherRace = Math.max(0, ...(intermediateRaces ?? []).map(r => r.globalWeek));
+  for (const ch of chunks) {
+    for (const wk of ch.weeks ?? []) {
+      if (wk.weekNumber + phaseCtx.weekOffset <= lastOtherRace) continue;
+      if (resolveWeekPhase(wk.phase, wk.weekNumber, phaseCtx) !== "peak") continue;
+      const sessions = (wk.sessions ?? []) as PlanSession[];
+      const intense = sessions.filter(s => {
+        if (s.sport === "rest" || s.sport === "strength" || isRaceEventTitle(s)) return false;
+        const fiche = !s.custom && s.catalogId ? ficheFor(s.catalogId) : null;
+        const details = s.details || fiche?.structure.map(p => p.text).join("; ") || "";
+        const parsed = {
+          sport: s.sport ?? "", durationMin: s.durationMin, title: s.title ?? "", details,
+          zones: s.zones ?? fiche?.structure.flatMap(p => p.zones ?? []),
+          weekNumber: wk.weekNumber, weekTheme: wk.theme ?? "", phase: wk.phase ?? "",
+          dayName: s.day ?? "", dayIndex: 0, isRest: false,
+        };
+        if (!isGenuinelyDemandingSession(parsed)) return false;
+        if (RACE_PACE_TEXT.test(`${s.title ?? ""} ${details}`)) return false;
+        return demandingSessionDomain(parsed) !== "controlled";
+      });
+      if (intense.length <= SPECIFIC_PHASE_MAX_INTENSE) continue;
+      const ordered = [...intense].sort((a, b) => (a.isKeySession ? 0 : 1) - (b.isKeySession ? 0 : 1));
+      const quotaEntry = quotasByWeek?.[wk.weekNumber] ?? null;
+      for (const s of ordered.slice(SPECIFIC_PHASE_MAX_INTENSE)) {
+        const id = s.custom ? null : s.catalogId;
+        const repl = findReplacement({
+          sport: normSport(s.sport),
+          weekPhase: "peak",
+          targetDur: s.durationMin ?? 0,
+          original: id ? ficheFor(id) : null,
+          restrictToIds,
+          ledger,
+          excludeFamily: "vo2",
+          allowedCandidateIntentFamilies: ["race_pace", "endurance_fondamentale", "brick"],
+          objectiveKey: phaseCtx.objectiveKey,
+          levelSignal: phaseCtx.beginnerIntensitySignal,
+          weekZoneCap: 3,
+          weekType: resolveRepairWeekType(wk, quotaEntry),
+        }, id ?? undefined);
+        const label = id ?? s.title ?? "custom";
+        if (repl) {
+          assignFiche(s, repl, s.durationMin, ledger);
+          (s as { details?: string }).details = `${SPECIFIC_PHASE_NOTE} ${(s as { details?: string }).details ?? ""}`;
+          counters.specific_intensity_downgraded = (counters.specific_intensity_downgraded ?? 0) + 1;
+          logs.push(`[specific_intensity_downgraded] S${wk.weekNumber} ${s.day} ${label} (${intense.length} séances seuil/VO2max en phase spécifique > ${SPECIFIC_PHASE_MAX_INTENSE}) → ${repl.id}`);
+        } else {
+          counters.specific_intensity_unresolved = (counters.specific_intensity_unresolved ?? 0) + 1;
+          logs.push(`[specific_intensity_unresolved] S${wk.weekNumber} ${s.day} ${label} — aucune séance allure course/endurance compatible (${intense.length} séances intenses en phase spécifique)`);
+        }
+      }
+    }
+  }
+}
+
 export interface RunReconcilerOptions {
   raceCalendar?: RaceCalendarConfig;
   /** Courses B/C déclarées (semaine/jour globaux) — jour de course garanti. */
@@ -2432,6 +2514,7 @@ export function runReconciler(
 
   hydrateDilutedZones(chunks, counters, logs);
   enforceDemandingAccumulation(chunks, opts.beginnerIntensitySignal, counters, logs, usageLedger, injected, phaseCtx, quotasByWeek);
+  enforceSpecificPhaseIntensity(chunks, counters, logs, usageLedger, injected, phaseCtx, quotasByWeek, opts.intermediateRaces);
   enforceAthleteConstraints(chunks, parseAthleteConstraints(opts.constraints), counters, logs);
   enforceMaxSessionsPerDay(chunks, opts.maxSessionsPerDay, counters, logs);
   // Last mutation: day-moving repairs cannot reintroduce training on race day.

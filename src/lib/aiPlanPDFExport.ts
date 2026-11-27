@@ -1,4 +1,6 @@
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
+import { enrichWithAbsoluteValues, type SportKind } from "@/lib/plan/renderIntensities";
+import type { TargetTable } from "@/lib/plan/targetTable";
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
 import { weeklyTimeBreakdown, formatScheduledMinutes } from "@/lib/plan/weeklyTimeBreakdown";
 /**
@@ -386,6 +388,8 @@ export interface PDFGapContext {
   thresholdPaceSecPerKm?: number | null;
   /** CP/W' athlète (Skiba 2012) — recalcul du repos sur les fiches avec wbalProfile. */
   wbalRefs?: WbalAthleteRefs | null;
+  /** Cibles de l'athlète (même table que l'écran) : watts, allures et puissance de course dans chaque séance. */
+  targetTable?: TargetTable | null;
 }
 
 export function exportAIPlanToPDF(
@@ -411,7 +415,10 @@ function buildPlanHTML(
   gapContext?: PDFGapContext,
 ): string {
   // Clean a display copy: exports never rewrite the stored plan.
-  plan={...plan,weeks:plan.weeks.map(w=>({...w,theme:cleanPlanText(w.theme),sessions:w.sessions.map(s=>({...s,title:cleanPlanText(s.title),details:cleanPlanText(s.details)}))}))};
+  // Watts / allures de l'athlète comme à l'écran (copie d'affichage uniquement).
+  const table = gapContext?.targetTable ?? null;
+  const personal = (text: string, sport: string) => table ? enrichWithAbsoluteValues(text, table, sport as SportKind) : text;
+  plan={...plan,weeks:plan.weeks.map(w=>({...w,theme:cleanPlanText(w.theme),sessions:w.sessions.map(s=>({...s,title:personal(cleanPlanText(s.title),s.sport),details:personal(cleanPlanText(s.details),s.sport)}))}))};
   const hasDate = !!startDate;
   const isPortrait = orientation === "portrait";
   const isCompact = detailLevel === "compact";

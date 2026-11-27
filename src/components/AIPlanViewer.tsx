@@ -1525,8 +1525,8 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
   // interactive (WbalAthleteRefsProvider), pour que le PDF affiche aussi un
   // repos recalculé au CP/W' réel sur les fiches avec wbalProfile.
   const gapContextWithWbal = useMemo(
-    () => ({ ...gapContext, wbalRefs: wbalAthleteRefs }),
-    [gapContext, wbalAthleteRefs]
+    () => ({ ...gapContext, wbalRefs: wbalAthleteRefs, targetTable }),
+    [gapContext, wbalAthleteRefs, targetTable]
   );
 
   const handleExportPDF = () => {

@@ -118,6 +118,7 @@ import { PlanHistoryCard } from "@/components/PlanHistoryCard";
 import { PlanAdaptationDialog } from "@/components/plan/PlanAdaptationDialog";
 import { usePlanSnapshotSync } from "@/hooks/usePlanSnapshotSync";
 import { useAthleteRaceGoals } from "@/hooks/useAthleteRaceGoals";
+import { missingRegisteredRaces } from "@/lib/plan/registeredRaces";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -796,6 +797,7 @@ export default function AITrainingPlanPage() {
   const updateRaceGoal = (idx: number, field: keyof RaceGoal, value: string) => {
     setRaceGoals(prev => prev.map((g, i) => i === idx ? { ...g, [field]: value } : g));
   };
+
 
   // Fix "priorité des événements — 2 objectifs A" (audit coach) : le moteur
   // (classifyMultiObjectiveGoalsClient, miroir de classifyMultiObjectiveGoals
@@ -1960,6 +1962,12 @@ export default function AITrainingPlanPage() {
     }
   };
 
+  // Courses de la fiche de l'athlète qui tombent pendant ce plan sans y être (ajout en un geste, jamais automatique).
+  const registeredRacesMissing = useMemo(() => missingRegisteredRaces(savedAthleteRaceGoals, raceGoals, {
+    planStart: format(planStartDate, "yyyy-MM-dd"), mainRaceDate: raceDate || null,
+  }), [savedAthleteRaceGoals, raceGoals, planStartDate, raceDate]);
+  const addRegisteredRaces = () => setRaceGoals(prev => [...prev, ...registeredRacesMissing]);
+
   const handleGenerate = async (extraConstraints?: string, prevalidateOnly=false) => {
     // Une génération complète invalide toute régénération ciblée précédente.
 
@@ -1970,6 +1978,9 @@ export default function AITrainingPlanPage() {
     if (!athleteContext) {
       toast.error("Sélectionnez un athlète avec un snapshot actif");
       return;
+    }
+    if (!prevalidateOnly && registeredRacesMissing.length > 0) {
+      toast.warning(`Course de la fiche absente du plan : ${registeredRacesMissing.map(r => `${r.raceName || r.objective} (${r.raceDate.split("-").reverse().join("/")})`).join(", ")}. Ajoute-la dans « Objectifs intermédiaires » si l'athlète la court.`, { duration: 9000 });
     }
 
     // Guard: trail objectives REQUIRE distance + D+ to compute trailProfile (no fake defaults)
@@ -4058,6 +4069,19 @@ export default function AITrainingPlanPage() {
                   </div>
                   );
                 })}
+
+                {registeredRacesMissing.length > 0 && (
+                  <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 space-y-2">
+                    <p className="text-xs">
+                      <b>Courses de la fiche absentes de ce plan :</b>{" "}
+                      {registeredRacesMissing.map(r => `${r.raceName || r.objective} · ${OBJECTIVE_OPTIONS.find(o => o.value === r.objective)?.label ?? r.objective} · ${r.raceDate.split("-").reverse().join("/")}`).join(" ; ")}
+                    </p>
+                    <Button variant="outline" size="sm" className="w-full min-h-11 text-xs gap-1.5" onClick={addRegisteredRaces}>
+                      <Plus className="h-3.5 w-3.5" />
+                      Ajouter {registeredRacesMissing.length > 1 ? "ces courses" : "cette course"} au plan (priorité B, modifiable)
+                    </Button>
+                  </div>
+                )}
 
                 <Button
                   variant="outline"
