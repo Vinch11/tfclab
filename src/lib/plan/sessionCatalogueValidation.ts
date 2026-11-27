@@ -40,7 +40,7 @@ const blocking = (errors: string[]) => errors.filter(e => e !== "catalogue_durat
  * jamais de fiche. Sans fiche compatible, la séance reste telle quelle (la sauvegarde la signalera).
  * Mute le plan reçu ; renvoie une ligne par séance modifiée.
  */
-export function repairCatalogueContractPlan(plan: PlanLike & { weeks: Array<{ sessions: Array<{ catalogId?: string | null; custom?: boolean; variantKey?: string; zones?: string[] }> }> }, objective?: string): string[] {
+export function repairCatalogueContractPlan(plan: PlanLike & { weeks: Array<{ sessions: Array<{ catalogId?: string | null; custom?: boolean; variantKey?: string; zones?: string[] }> }> }, objective?: string, durationMustFit?: WeakSet<object>): string[] {
  const log: string[] = [];
  for (const week of plan.weeks) {
   const contract = weekContract(plan, week, objective);
@@ -48,7 +48,9 @@ export function repairCatalogueContractPlan(plan: PlanLike & { weeks: Array<{ se
   week.sessions.forEach((session, index) => {
    if (session.isRest || session.sport === "rest") return;
    const catalogId = extractCatalogId(session.title ?? "", session.details ?? "", session.catalogId);
-   const errors = blocking(checkSessionCatalogue({ ...session, catalogId }, contract).errors);
+   // Séance raccourcie par une protection de course : sa fiche doit aussi convenir à la nouvelle durée.
+   const all = checkSessionCatalogue({ ...session, catalogId }, contract).errors;
+   const errors = durationMustFit?.has(session) ? all : blocking(all);
    if (!errors.length) return;
    if (errors.includes("race_catalog_conflict")) {
     session.catalogId = null; session.custom = true;
@@ -57,7 +59,7 @@ export function repairCatalogueContractPlan(plan: PlanLike & { weeks: Array<{ se
     return;
    }
    const original = catalogId ? catalog.find(m => m.id === catalogId) : undefined;
-   const candidate = bestCompatibleCard(session, contract, original, usedThisWeek);
+   const candidate = bestCompatibleCard(session, contract, original, usedThisWeek, !!durationMustFit?.has(session));
    if (!candidate) { log.push(`S${week.weekNumber} séance ${index + 1} [${catalogId ?? "?"}] : aucune fiche compatible (${errors.join(", ")})`); return; }
    session.catalogId = candidate.id; session.custom = false; session.variantKey = undefined;
    session.title = candidate.title;
@@ -70,7 +72,7 @@ export function repairCatalogueContractPlan(plan: PlanLike & { weeks: Array<{ se
  return log;
 }
 
-function bestCompatibleCard(session: ContractSession, contract: CatalogueContract, original: RepairWorkoutMetadata | undefined, used: Set<string>): RepairWorkoutMetadata | null {
+function bestCompatibleCard(session: ContractSession, contract: CatalogueContract, original: RepairWorkoutMetadata | undefined, used: Set<string>, mustFit = false): RepairWorkoutMetadata | null {
  let best: { m: RepairWorkoutMetadata; score: number } | null = null;
  const goal = normalizeRepairGoal(contract.objective);
  const dur = session.durationMin ?? 0;
@@ -80,7 +82,8 @@ function bestCompatibleCard(session: ContractSession, contract: CatalogueContrac
   if (!sameIntent && !FALLBACK_FAMILIES.has(m.intentFamily)) continue;
   const trial: ContractSession = { day: session.day, dayName: session.dayName, sport: session.sport, durationMin: session.durationMin,
    catalogId: m.id, custom: false, title: m.title, details: m.structure, zones: m.zones };
-  if (blocking(checkSessionCatalogue(trial, contract).errors).length) continue;
+  const trialErrors = checkSessionCatalogue(trial, contract).errors;
+  if ((mustFit ? trialErrors : blocking(trialErrors)).length) continue;
   const fits = dur > 0 && dur >= m.durationMin[0] && dur <= m.durationMin[1];
   // Une fiche écrite pour l'objectif de l'athlète passe avant une fiche d'un autre objectif (ex. Start to Run).
   const goals = m.goals.map(g => normalizeRepairGoal(g)).filter(Boolean);

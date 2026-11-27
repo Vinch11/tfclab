@@ -11,7 +11,7 @@ import { buildWorkoutCatalog, serializeCatalogForPrompt, computeCatalogDurationS
 import { isTrailCatalogId } from "./trailMarkers";
 import { extractCatalogIdsFromDump } from "../../../supabase/functions/_shared/catalogueIds";
 import { computeObjectiveCycleSegments } from "./multiObjectiveClassification";
-import { inferWeekType, buildCoachVolumeBudget, buildQuotaPromptBlock, computeWeekQuotaEntry, applySlFloorIndividualization, type SlFloorRampAnchors } from "@/engines/plan/sessionSizingMatrix";
+import { inferWeekType as inferCadenceWeekType, buildCoachVolumeBudget, buildQuotaPromptBlock, computeWeekQuotaEntry, applySlFloorIndividualization, type SlFloorRampAnchors } from "@/engines/plan/sessionSizingMatrix";
 import { parseAthleteConstraints } from "./constraintRules";
 import { buildWeeklySlotLayout, buildLayoutPromptBlock, type WeeklySlotLayout, type LayoutSport } from "@/engines/plan/weeklySlotLayout";
 import { declaredRaceSlotsForWeek } from "../../../supabase/functions/_shared/catalogueTrainingMinima";
@@ -35,6 +35,15 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
  const needsChunking=totalWeeks>(isTriVerbose?6:isTrailVerbose?8:6);
  const totalChunks=needsChunking?Math.ceil(totalWeeks/CHUNK_SIZE):1;
  let allowedCatalogIds:string[]=[];
+      // Semaine allégée juste avant le mini-affûtage d'une course intermédiaire : elle ferait doublon
+      // (plan du 27/11/2026 : 5 semaines sous 10 h autour d'un marathon B). L'affûtage et la
+      // récupération de cette course tiennent lieu d'allègement ; la semaine reste une semaine de charge.
+      const deloadBeforeIntermediateRace = (localWeek: number) => [1, 2].some(k =>
+        localWeek + k + weekOffset < effTotalWeeks && declaredRaceSlotsForWeek(datedCalendar, localWeek + k).length > 0);
+      const alignedWeekType = (localWeek: number, ...args: Parameters<typeof inferCadenceWeekType>) => {
+        const cadence = inferCadenceWeekType(...args);
+        return cadence === "recovery" && deloadBeforeIntermediateRace(localWeek) ? "load" : cadence;
+      };
       const phaseCalendar = buildPeriodizationCalendar(planConfig);
       const globalPhaseCalendar = buildPeriodizationCalendar({ ...planConfig,
         weeksAvailable: effTotalWeeks, globalWeekOffset: 0, windowRegenPhase: undefined,
@@ -44,7 +53,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
         const weekContexts = Array.from({ length: end - start + 1 }, (_, i) => ({
           terrainAvailability: planConfig.terrainAvailability,
           phase: isRegenGapWeek(start + i - weekOffset) ? "base" : phaseCalendar?.[start + i - weekOffset], objective: planConfig.catalogObjective || planConfig.objective,
-          weekType: protectedRaceWeekType(planConfig,start+i-weekOffset,isRegenGapWeek(start + i - weekOffset) ? "recovery" : inferWeekType(start + i, effTotalWeeks, planConfig.catalogObjective || planConfig.objective, athleteData.age, planConfig.deloadCadenceWeeks)),
+          weekType: protectedRaceWeekType(planConfig,start+i-weekOffset,isRegenGapWeek(start + i - weekOffset) ? "recovery" : alignedWeekType(start + i - weekOffset, start + i, effTotalWeeks, planConfig.catalogObjective || planConfig.objective, athleteData.age, planConfig.deloadCadenceWeeks)),
         }));
         return phases.length ? { phaseOverride: phases, weekContexts } : { weekContexts };
       };
@@ -457,6 +466,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
         const globalWeekNum = w + weekOffset;
         const isPostPeakRegenWeek = !!cycleSegmentsForRegen
           && !cycleSegmentsForRegen.some((seg) => globalWeekNum >= seg.startWeek && globalWeekNum <= seg.endWeek);
+        const inferWeekType = (...args: Parameters<typeof inferCadenceWeekType>) => alignedWeekType(w, ...args);
         const weekType = protectedRaceWeekType(planConfig,w,isPostPeakRegenWeek
           ? "recovery"
           : inferWeekType(globalWeekNum, effTotalWeeks, objectiveForQuota, athleteData.age, planConfig.deloadCadenceWeeks));

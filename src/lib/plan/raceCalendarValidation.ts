@@ -97,3 +97,38 @@ export function validateRaceTrajectory(plan: Pick<FinalValidationPlanLike,'weeks
   }
   return issues;
 }
+export const RACE_PROTECTION_TRIM_NOTE = (minutes: number, what: string) =>
+  `Raccourci par TFCL : ${what}, ${minutes} min au plus ce jour-là.`;
+
+/**
+ * Dernière passe (plan du 27/11/2026 : course de 2 h à J+12 d'un marathon) : sur un jour protégé avant ou
+ * après une course, une séance plus longue que le plafond de son sport est ramenée à ce plafond, avec une
+ * note ; plafond nul (repos ou brick interdit) → repos. Mêmes protections que `validateRaceCalendar`.
+ * Ne touche ni le jour de course ni l'intensité (signalée par la validation). Renvoie une ligne par séance.
+ */
+export function enforceRaceProtectionCaps(plan: { weeks: Array<{ weekNumber: number; sessions: Array<Record<string, unknown>> }> }, config: RaceCalendarConfig, trimmed?: WeakSet<object>): string[] {
+  if (strictRaceDate(config.planStartDate) === undefined) return [];
+  const log: string[] = [];
+  for (const week of plan.weeks) {
+    for (const s of week.sessions as unknown as Array<FinalValidationSessionLike & { day?: string; durationMin?: number; catalogId?: string | null; custom?: boolean }>) {
+      if (s.isRest || s.sport === 'rest' || isRaceDaySession(s)) continue;
+      const p = raceProtectionForDay(config, week.weekNumber, raceSessionDay(s));
+      if (!p || p.stage === 'race') continue;
+      const cap = p.maxMinutes[normalizeRepairSport(s.sport) as keyof typeof p.maxMinutes];
+      const what = `${p.stage === 'recovery' ? 'récupération après' : 'affûtage avant'} ${p.label}`;
+      if (p.restOnly || cap === 0) {
+        Object.assign(s, { sport: 'rest', isRest: true, title: 'Repos complet', details: `Repos : ${what}.`, durationMin: 0, catalogId: null, custom: true, zones: [] });
+        log.push(`S${week.weekNumber} ${raceSessionDay(s)} : séance remplacée par du repos (${what})`);
+        continue;
+      }
+      const duration = s.durationMin ?? parseSessionDurationMin(s as never) ?? 0;
+      if (cap !== undefined && duration > cap) {
+        s.durationMin = cap;
+        trimmed?.add(s);
+        s.details = `${RACE_PROTECTION_TRIM_NOTE(cap, what)} ${s.details ?? ''}`;
+        log.push(`S${week.weekNumber} ${raceSessionDay(s)} : ${duration} → ${cap} min (${what})`);
+      }
+    }
+  }
+  return log;
+}

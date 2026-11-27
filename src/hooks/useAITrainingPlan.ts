@@ -1,5 +1,6 @@
 import { resolvePlanDurationRanges } from "@/lib/plan/resolveDurationRanges";
 import { repairCatalogueContractPlan } from "@/lib/plan/sessionCatalogueValidation";
+import { enforceRaceProtectionCaps } from "@/lib/plan/raceCalendarValidation";
 import { validateRaceCalendar } from '@/lib/plan/raceCalendarValidation';
 import { demoteMismatchedKeySessions } from "@/lib/plan/keySessionObjective";
 import { prepareGenerationContracts } from "@/lib/plan/prepareGenerationContracts";
@@ -1268,8 +1269,16 @@ export function useAITrainingPlan() {
             if (loadRepairs.length) console.warn("[useAITrainingPlan] coach load repairs:", loadRepairs);
             // Dernière passe : chaque séance passe le même contrôle que la sauvegarde ; une séance
             // refusée est remplacée par une fiche compatible du même sport (et le texte le dit).
+            // Plafonds des jours protégés avant / après une course, puis contrôle catalogue (la fiche d'une
+            // séance raccourcie doit convenir à sa nouvelle durée).
+            const trimmed = new WeakSet<object>();
             try {
-              const fixed = repairCatalogueContractPlan({ ...merged, weeklyQuotas: lastWeeklyQuotasRef.current ?? undefined } as never, planConfig.objective ?? undefined);
+              for (const line of enforceRaceProtectionCaps(merged as never, planConfig, trimmed)) semanticRepairs.push(`[info] race_protection_trimmed: ${line}`);
+            } catch (tErr) {
+              console.error("[useAITrainingPlan] race protection caps failed:", tErr);
+            }
+            try {
+              const fixed = repairCatalogueContractPlan({ ...merged, weeklyQuotas: lastWeeklyQuotasRef.current ?? undefined } as never, planConfig.objective ?? undefined, trimmed);
               for (const line of fixed) semanticRepairs.push(`[info] catalogue_contract_repaired: ${line}`);
               if (fixed.length) console.warn("[useAITrainingPlan] catalogue contract repairs:", fixed);
             } catch (cErr) {
