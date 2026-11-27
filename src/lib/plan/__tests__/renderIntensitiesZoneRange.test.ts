@@ -24,7 +24,8 @@ describe("renderIntensities — ranges de zones", () => {
 
   it("préserve l'annotation des zones isolées", () => {
     const out = enrichWithAbsoluteValues("WU 10' Z1 puis 3x8' Z4 récup Z2", tt, "bike");
-    expect(out).toMatch(/Z1\s*\(\d+-\d+W\)/);
+    // Zone 1 : pas de borne basse utile (« < 138W »), plan du 27/11/2026.
+    expect(out).toMatch(/Z1\s*\(< \d+W\)/);
     expect(out).toMatch(/Z4\s*\(\d+-\d+W\)/);
     expect(out).toMatch(/Z2\s*\(\d+-\d+W\)/);
   });

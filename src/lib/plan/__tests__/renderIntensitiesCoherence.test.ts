@@ -34,4 +34,10 @@ describe("séances : zones et watts de l'athlète", () => {
     const marathon = buildTargetTable({ ftp: 188, vma: 13, objective: "Marathon", ambition: "competitor" });
     expect(enrichWithAbsoluteValues("allure race (65-68% FTP)", marathon, "bike")).toContain("65-68% FTP (122-128W)");
   });
+  it("zones ouvertes et références de fiche", () => {
+    expect(enrichWithAbsoluteValues("Main: 25min Z1 strict", table, "run")).toMatch(/Z1 \(plus lent que \d:\d\d\/km\)/);
+    expect(enrichWithAbsoluteValues("Warm-up: 10min Z1", table, "bike")).toContain("Z1 (< 127W)");
+    expect(enrichWithAbsoluteValues("Main: 8x200m @ CSS r=20s [ID: B_SWIM_CSS_8x200_PRO]", { ...table, cssSecPer100m: 110 }, "swim"))
+      .toContain("[ID: B_SWIM_CSS_8x200_PRO]");
+  });
 });

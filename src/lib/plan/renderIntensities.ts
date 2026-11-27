@@ -67,28 +67,39 @@ function runRangeFromTable(zone: ZoneId | "Z4", t: TargetTable, vmaKmh: number):
   return [paceFromVma(vmaKmh, z.vma.max), paceFromVma(vmaKmh, z.vma.min)];
 }
 
+/** Zone 1 (vélo dès 0 W, course jusqu'à la marche) et zone 7 n'ont pas de borne utile : « < 127W », « plus lent que 7:11/km ». */
+const OPEN_SLOW_PACE_SEC = 600;
+function wattsText(lo: number, hi: number, zHigh: ZoneId | "Z4"): string {
+  if (lo <= 0) return `< ${hi}W`;
+  if (zHigh === "Z7") return `> ${lo}W`;
+  return `${lo}-${hi}W`;
+}
+function paceText(fast: number, slow: number): string {
+  return slow >= OPEN_SLOW_PACE_SEC ? `plus lent que ${fmtPace(fast)}/km` : `${fmtPace(fast)}-${fmtPace(slow)}/km`;
+}
+
 function bikeZoneWatts(zone: ZoneId | "Z4", t: TargetTable, ftpW: number): string | null {
   const r = bikeRangeFromTable(zone, t, ftpW);
-  return r ? `${r[0]}-${r[1]}W` : null;
+  return r ? wattsText(r[0], r[1], zone) : null;
 }
 
 function runZonePace(zone: ZoneId | "Z4", t: TargetTable, vmaKmh: number): string | null {
   const r = runRangeFromTable(zone, t, vmaKmh);
-  return r ? `${fmtPace(r[0])}-${fmtPace(r[1])}/km` : null;
+  return r ? paceText(r[0], r[1]) : null;
 }
 
 function bikeZoneRangeWatts(zLow: ZoneId | "Z4", zHigh: ZoneId | "Z4", t: TargetTable, ftpW: number): string | null {
   const a = bikeRangeFromTable(zLow, t, ftpW);
   const b = bikeRangeFromTable(zHigh, t, ftpW);
   if (!a || !b) return null;
-  return `${Math.min(a[0], b[0])}-${Math.max(a[1], b[1])}W`;
+  return wattsText(Math.min(a[0], b[0]), Math.max(a[1], b[1]), zHigh);
 }
 
 function runZoneRangePace(zLow: ZoneId | "Z4", zHigh: ZoneId | "Z4", t: TargetTable, vmaKmh: number): string | null {
   const a = runRangeFromTable(zLow, t, vmaKmh);
   const b = runRangeFromTable(zHigh, t, vmaKmh);
   if (!a || !b) return null;
-  return `${fmtPace(Math.min(a[0], b[0]))}-${fmtPace(Math.max(a[1], b[1]))}/km`;
+  return paceText(Math.min(a[0], b[0]), Math.max(a[1], b[1]));
 }
 
 
@@ -157,6 +168,10 @@ export function enrichWithAbsoluteValues(
   sport: SportKind,
 ): string {
   if (!text || !targetTable) return text;
+  // Les références de fiche « [ID: …] » ne sont jamais annotées (ex. « B_SWIM_CSS_8x200 »).
+  if (/\[ID:[^\]]*\]/.test(text)) {
+    return text.split(/(\[ID:[^\]]*\])/).map(part => /^\[ID:/.test(part) ? part : enrichWithAbsoluteValues(part, targetTable, sport)).join("");
+  }
   // Enchaînement : la partie vélo (avant T2 / « Run » / « Course ») se lit en watts, la suite en allure.
   if (sport === "brick") {
     const cut = text.search(/\bT2\b|\bRun\s*[:\d]|\bCourse\s+(?:à\s+pied\s+)?\d|\bCAP\s*[:\d]/i);
