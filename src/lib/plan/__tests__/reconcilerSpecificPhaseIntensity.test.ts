@@ -10,17 +10,18 @@ import type { LibraryWorkout } from "@/types/workoutLibrary";
 import type { PlanChunk, PlanSession } from "@/lib/plan/planSchema";
 
 vi.mock("@/lib/workoutLibrary", () => {
-  const card = (id: string, sport: string, objectif: string, text: string, zones: string[], tags: string[]): LibraryWorkout => ({
+  const card = (id: string, sport: string, objectif: string, text: string, zones: string[], tags: string[], primary: string): LibraryWorkout => ({
     id, cat: "A", sport, objectif, necessite: "Recommandé", when: "Spécifique", phase: ["build", "peak"],
     avoid: "", durationMin: [50, 100], metricKey: sport === "bike" ? "power" : "pace", sportKey: sport,
-    structure: [{ part: "Main", text, zones }], variants: {}, tags, goals: ["im", "703"],
+    structure: [{ part: "Main", text, zones }], variants: {}, tags, goals: ["im", "703"], physiology: { primary },
   } as unknown as LibraryWorkout);
   return { WorkoutLibrary: [
-    card("BIKE_VO2", "bike", "VO2 4x4", "4x4min Z6 108-112% FTP", ["Z6"], ["vo2"]),
-    card("BIKE_SEUIL", "bike", "Seuil 2x20", "2x20min Z5 95-100% FTP", ["Z5"], ["seuil"]),
-    card("RUN_VMA", "run", "VMA 4x6", "4x6min Z5 90-95% VMA", ["Z5"], ["vma"]),
-    card("BIKE_RACE_IM", "bike", "Allure Ironman", "3x30min allure IM Z3", ["Z3"], ["race_pace", "allure ironman"]),
-    card("RUN_EF", "run", "Endurance fondamentale", "70min Z2 continu", ["Z2"], ["endurance"]),
+    card("BIKE_VO2", "bike", "VO2 4x4", "4x4min Z6 108-112% FTP", ["Z6"], ["vo2"], "vo2max"),
+    card("BIKE_SEUIL", "bike", "Seuil 2x20", "2x20min Z5 95-100% FTP", ["Z5"], ["seuil"], "mlss"),
+    card("RUN_VMA", "run", "VMA 4x6", "4x6min Z5 90-95% VMA", ["Z5"], ["vma"], "vo2max"),
+    card("BIKE_RACE_IM", "bike", "Allure Ironman", "3x30min allure IM Z3", ["Z3"], ["race_pace", "allure ironman"], "race_specific"),
+    card("BIKE_EF", "bike", "Endurance fondamentale vélo", "80min Z2 continu", ["Z2"], ["endurance"], "moderate_lt1"),
+    card("RUN_EF", "run", "Endurance fondamentale", "70min Z2 continu", ["Z2"], ["endurance"], "moderate_lt1"),
   ] };
 });
 
