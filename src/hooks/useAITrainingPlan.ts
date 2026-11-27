@@ -1,4 +1,5 @@
 import { resolvePlanDurationRanges } from "@/lib/plan/resolveDurationRanges";
+import { repairCatalogueContractPlan } from "@/lib/plan/sessionCatalogueValidation";
 import { validateRaceCalendar } from '@/lib/plan/raceCalendarValidation';
 import { demoteMismatchedKeySessions } from "@/lib/plan/keySessionObjective";
 import { prepareGenerationContracts } from "@/lib/plan/prepareGenerationContracts";
@@ -1265,6 +1266,15 @@ export function useAITrainingPlan() {
             // otherwise the refusal check reads the unadjusted durations.
             const loadRepairs = repairCoachLoadCeilings(merged, lastWeeklyQuotasRef.current ?? {});
             if (loadRepairs.length) console.warn("[useAITrainingPlan] coach load repairs:", loadRepairs);
+            // Dernière passe : chaque séance passe le même contrôle que la sauvegarde ; une séance
+            // refusée est remplacée par une fiche compatible du même sport (et le texte le dit).
+            try {
+              const fixed = repairCatalogueContractPlan({ ...merged, weeklyQuotas: lastWeeklyQuotasRef.current ?? undefined } as never, planConfig.objective ?? undefined);
+              for (const line of fixed) semanticRepairs.push(`[info] catalogue_contract_repaired: ${line}`);
+              if (fixed.length) console.warn("[useAITrainingPlan] catalogue contract repairs:", fixed);
+            } catch (cErr) {
+              console.error("[useAITrainingPlan] catalogue contract repair failed:", cErr);
+            }
             const parsed = jsonPlanToParsedPlan(merged);
             if (incompletePhaseWeeks.length > 0) parsed.incompletePhaseWeeks = incompletePhaseWeeks;
             // Audit scientifique P0 — F12 : validation finale post-mutations

@@ -16,7 +16,7 @@ import { resolvePlanningSnapshotLoad } from "@/lib/planningSnapshotLoad";
 import { currentPlanReleaseHeaders } from "@/lib/plan/planReleasePreflight";
 import { checkB5, checkB5ToValidationIssues } from "@/lib/plan/qa/checks";
 import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
-import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
+import { validateSessionCataloguePlan, repairCatalogueContractPlan } from "@/lib/plan/sessionCatalogueValidation";
 import { validateCoachLoadIssues, repairCoachLoadCeilings, isBlockingCoachLoadIssue } from "@/lib/plan/coachVolumeValidation";
 import { validateRaceCalendar } from '@/lib/plan/raceCalendarValidation';
 import { assertPlanDeliverySafe } from '@/lib/plan/planDeliverySafety';
@@ -3127,6 +3127,16 @@ export default function AITrainingPlanPage() {
       const quotaIssues = regenQuotaEntry
         ? validateWeeklyQuotas(mergedWeek, { 1: regenQuotaTransport._weeklyQuotas[weekNumber] })
         : undefined;
+      // Même contrôle que la sauvegarde pour la semaine régénérée (numéro réel pour le contexte de semaine).
+      try {
+        const quota = regenQuotaTransport?._weeklyQuotas?.[weekNumber];
+        const probe = { weeklyQuotas: quota ? { [weekNumber]: quota } : undefined,
+          weeks: mergedWeek.weeks.map(w => ({ ...w, weekNumber })) };
+        for (const line of repairCatalogueContractPlan(probe as never, objective)) repairTraces.push(`[catalogue_contract_repaired] ${line}`);
+        mergedWeek.weeks = probe.weeks.map(w => ({ ...w, weekNumber: 1 })) as typeof mergedWeek.weeks;
+      } catch (cErr) {
+        console.error("[handleRegenerateWeek] catalogue contract repair failed:", cErr);
+      }
       const regenPlan = jsonPlanToParsedPlan(mergedWeek);
       const newWeek = regenPlan.weeks[0];
       if (!newWeek) throw new Error("Réponse IA illisible");
