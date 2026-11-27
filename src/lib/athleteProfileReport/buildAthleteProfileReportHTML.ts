@@ -61,7 +61,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     ${preparationTimeline(d.roadmap, [d.objectifLabel, d.nextRace].filter(Boolean).join(' · '), true)}
     ${decision ? `<p class="edition-deck">Le premier chantier proposé est « ${esc(decision.block)} »${decision.durationWeeks > 0 && !d.roadmap ? `, sur ${decision.durationWeeks} semaines` : ''}.</p>
       ${decision.athleteMessage ? `<p>${rich(decision.athleteMessage)}</p>` : ''}
-      ${decision.workouts.length ? `<h3>À quoi cela ressemble à l’entraînement</h3><ul>${decision.workouts.slice(0, 3).map(w => `<li>${rich(w)}</li>`).join('')}</ul>` : ''}` :
+      ${decision.workouts.length ? `<div class="keep-together"><h3>À quoi cela ressemble à l’entraînement</h3><ul>${decision.workouts.slice(0, 3).map(w => `<li>${rich(w)}</li>`).join('')}</ul></div>` : ''}` :
       `<div class="note next-step"><b>Prochaine étape avec ton coach</b><p>${esc(athleteNextStep(flow?.decision))}</p></div>`}
     ${calendarPreview(d.calendar, true, true)}`);
   const disciplines = sports.map(sp => {
