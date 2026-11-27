@@ -20,6 +20,7 @@ import { normalizeRepairSport } from "../../../supabase/functions/_shared/repair
 import { snapshotSLFloorAudit, traceSLFloorConsumer } from "./slFloorAudit";
 import type { WeekQuotaEntry } from "./validateWeeklyQuotas";
 import {marathonReentryBudget} from './marathonReentryBudget';
+import { postMarathonCrossTrainingMinimum } from './postMarathonReentry';
 import {planNutritionPrompt} from './planNutritionReferences';
 import { weeklyPaceObjective, expectedSpecificMinutes, quotaPhase } from './specificPaceQuotas';
 export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfig:PlanConfig,options:{historicalUsage?:Map<string,number>;rotationSeed?:number}={}) {
@@ -496,16 +497,37 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
               entry.floors.minSwimPerWeek=0;
               entry.quota.totalSessions.min=0;
             }
+            // Après un marathon dans un plan triathlon : vélo et natation faciles plutôt qu'une semaine vide.
+            const reentry = postMarathonCrossTrainingMinimum(objectiveForQuota, RACE_DAYS.map(day=>raceProtectionForDay(planConfig,w,day)));
+            if (reentry) {
+              for (const sport of ['bike','swim','run'] as const) {
+                entry.quota[sport].min=Math.max(entry.quota[sport].min,reentry[sport]);
+                entry.quota[sport].max=Math.max(entry.quota[sport].max,entry.quota[sport].min);
+              }
+              const sum=reentry.bike+reentry.swim+reentry.run;
+              entry.quota.totalSessions.min=Math.max(entry.quota.totalSessions.min,sum);
+              entry.quota.totalSessions.max=Math.max(entry.quota.totalSessions.max,entry.quota.totalSessions.min);
+            }
           }
           const phaseFloors = applyLongRidePhasePolicy(entry.floors, {
             objective: objectiveForQuota, ...phasePosition(globalPhaseCalendar, globalWeekNum),
             phase: phaseCalendar?.[w], weekType, priorities: planConfig.identifiedLimitersRaw,
             isLCW: isLCWFormat, isMaintenance: isIntermediateRunCycle,
           });
-          // Affûtage de la course finale : une séance longue raccourcie progressivement, pas supprimée.
+          const phase = phaseCalendar?.[w];
+          const weekCatalog = chunkRepairCatalogs[Math.floor((w - 1) / CHUNK_SIZE)] ?? phaseRepairCatalogs[phase ?? "base"] ?? [];
+          const eligibleThisWeek = catalogueForWeek(weekCatalog, { phase, objective: objectiveForQuota, weekType, terrainAvailability: planConfig.terrainAvailability }).eligible;
+          const availableSports = new Set(eligibleThisWeek.map(m => normalizeRepairSport(m.sport) as LayoutSport));
+          // Affûtage de la course finale : une séance longue raccourcie progressivement, pas supprimée,
+          // jamais plus longue que les fiches d'affûtage réellement disponibles (sinon la séance ne
+          // trouve aucune fiche compatible et la sauvegarde est bloquée — plan du 27/11/2026).
+          const longestEasy = (sport: string) => Math.max(0, ...eligibleThisWeek
+            .filter(m => normalizeRepairSport(m.sport) === sport && m.mainZoneMax <= 3)
+            .map(m => m.durationMin[1]));
           const taperFloors = hasProtection ? phaseFloors : applyTaperLongSessionFloors(phaseFloors, {
             objective: objectiveForQuota, weeksToRace: effTotalWeeks - globalWeekNum, weekType,
             isLCW: isLCWFormat, isMaintenance: isIntermediateRunCycle,
+            catalogueMaxMin: { ride: longestEasy("bike"), run: longestEasy("run") },
           });
           const individualized = applySlFloorIndividualization(
             taperFloors, globalWeekNum, weekType, slRampAnchors, injuryRiskForSlFloor,
@@ -513,10 +535,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
           if (individualized.reasons.length > 0) {
             slFloorIndividualizationLog.push(`S${w} (globale S${globalWeekNum}): planchers individualisés`);
           }
-          const phase = phaseCalendar?.[w];
-          const weekCatalog = chunkRepairCatalogs[Math.floor((w - 1) / CHUNK_SIZE)] ?? phaseRepairCatalogs[phase ?? "base"] ?? [];
-          const availableSports = new Set(catalogueForWeek(weekCatalog, { phase, objective: objectiveForQuota, weekType, terrainAvailability: planConfig.terrainAvailability }).eligible
-            .map(m => normalizeRepairSport(m.sport) as LayoutSport));
+
           const protectedQuota = protectDedicatedRideQuota(entry.quota, individualized.floors);
           const layout: WeeklySlotLayout = buildWeeklySlotLayout(protectedQuota, individualized.floors, weekType, {
             availableSports,

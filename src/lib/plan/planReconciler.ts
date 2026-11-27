@@ -650,6 +650,16 @@ function resolveWeekPhase(_rawPhase: string, weekNumber: number, ctx?: PhaseCtx)
   return canonicalWeekPhase(weekNumber + ctx.weekOffset, ctx.totalWeeks, ctx.objectiveKey);
 }
 
+function taperFallback(s: PlanSession, fiche: LibraryWorkout, weekPhase: PlanPhase, week: { weeklyNotes?: string | null; theme?: string | null }, quotaEntry: WeekQuotaEntry | null, ledger: UsageLedger | undefined, phaseCtx?: PhaseCtx): LibraryWorkout | null {
+  const base = {
+    sport: normSport(s.sport), weekPhase, targetDur: s.durationMin ?? 0, original: fiche, ledger,
+    objectiveKey: phaseCtx?.objectiveKey, levelSignal: phaseCtx?.beginnerIntensitySignal,
+    weekZoneCap: resolveRepairWeekZoneCap(week, quotaEntry), weekType: resolveRepairWeekType(week, quotaEntry),
+    allowedCandidateIntentFamilies: ["endurance_fondamentale", "race_pace", "recuperation"] as RepairIntentFamily[],
+  };
+  return findReplacement(base, fiche.id) ?? findReplacement({ ...base, requireDurationContains: false }, fiche.id);
+}
+
 // ── Passe unique ───────────────────────────────────────────────────────────
 function runOnePass(
   chunks: PlanChunk[],
@@ -694,7 +704,11 @@ function runOnePass(
             levelSignal: phaseCtx?.beginnerIntensitySignal,
             weekZoneCap: resolveRepairWeekZoneCap(week, quotaEntry),
             weekType: resolveRepairWeekType(week, quotaEntry),
-          }, fiche.id);
+          }, fiche.id)
+            // Affûtage : sans fiche de même intention éligible, une fiche d'affûtage facile ou
+            // allure course du catalogue complet (même sport), d'abord à durée compatible.
+            // Sinon la séance reste hors phase et la sauvegarde est bloquée (plan du 27/11/2026).
+            ?? (weekPhase === "taper" ? taperFallback(s, fiche, weekPhase, week, quotaEntry, ledger, phaseCtx) : null);
           if (repl) {
             const before = fiche.id;
             assignFiche(s, repl, s.durationMin, ledger);
