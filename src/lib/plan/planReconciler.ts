@@ -40,6 +40,7 @@ import { extractLimiterKeywords } from "@/lib/plan/limiterKeywords";
 import { startToRunMaxSessionMin } from "@/engines/plan/sessionSizingMatrix";
 import { isRaceDaySession, isGenuinelyDemandingSession, demandingSessionCap, demandingSessionDomain } from "@/engines/plan/planValidator";
 import { effectiveSessionQuota, countQuotaSessions } from "../../../supabase/functions/_shared/sessionQuotaAccounting";
+import { isRaceProximityCard } from "../../../supabase/functions/_shared/sessionCatalogueContract";
 import { isRaceEventTitle } from "../../../supabase/functions/_shared/raceDayIdentity";
 import { isRaceSimIncompatibleWithObjective } from "./raceSimCompatibility";
 import { raceProtectionForDay, datedRaceGoals, strictRaceDate, RACE_DAYS, type RaceCalendarConfig } from '../../../supabase/functions/_shared/raceCalendarProtection';
@@ -119,6 +120,7 @@ export interface ReconcilerCounters {
   /** Phase spécifique IM/70.3 : séances seuil/VO2max au-delà d'une par semaine remplacées (décision coach 27/11/2026). */
   specific_intensity_downgraded?: number;
   specific_intensity_unresolved?: number;
+  race_proximity_repaired?: number;
   /** Même détection, mais aucune alternative threshold/easy disponible —
    *  séance conservée telle quelle (jamais de suppression silencieuse), le
    *  conflit reste signalé et sera re-détecté par validateDemandingSessionAccumulation. */
@@ -538,6 +540,8 @@ function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | n
     if (isLevelPrerequisiteIncompatible(w.id, levelSignal)) continue;
     if (weekZoneCap != null && ficheMainZoneMax(w) > weekZoneCap) continue;
     if (normSport(w.sport) !== sport) continue;
+    // Fiche « J-3 / veille de course » : seulement en semaine de course (même règle que la sauvegarde).
+    if (weekType && weekType !== "race" && isRaceProximityFiche(w)) continue;
     const sportingCompatibility = evaluateRepairSportingEquivalence(
       original ? REPAIR_METADATA_BY_ID.get(original.id.toUpperCase()) : null,
       REPAIR_METADATA_BY_ID.get(w.id.toUpperCase()),
@@ -648,6 +652,42 @@ function resolveWeekPhase(_rawPhase: string, weekNumber: number, ctx?: PhaseCtx)
   if (ctx?.phases?.[weekNumber]) return ctx.phases[weekNumber]!;
   if (!ctx) return canonicalWeekPhase(weekNumber, weekNumber, undefined);
   return canonicalWeekPhase(weekNumber + ctx.weekOffset, ctx.totalWeeks, ctx.objectiveKey);
+}
+
+function isRaceProximityFiche(w: LibraryWorkout): boolean {
+  const meta = REPAIR_METADATA_BY_ID.get(w.id.toUpperCase());
+  return !!meta && isRaceProximityCard(meta);
+}
+
+/**
+ * Fiche de proximité de course (opener J-3, veille de course…) hors semaine de course : la sauvegarde
+ * la refuse. On la remplace par une fiche de même intention, sinon facile / allure course du même sport
+ * (plan d'Emanuela, 27/11/2026 : S29 et S31). Sans remplaçant, la séance reste et le conflit est tracé.
+ */
+function repairRaceProximityOutsideRaceWeek(chunks: PlanChunk[], quotasByWeek: Record<number, WeekQuotaEntry>, counters: ReconcilerCounters, logs: string[], ledger?: UsageLedger, phaseCtx?: PhaseCtx): void {
+  for (const ch of chunks) for (const week of ch.weeks ?? []) {
+    const quotaEntry = quotasByWeek[week.weekNumber] ?? null;
+    const weekType = resolveRepairWeekType(week, quotaEntry);
+    if (weekType === "race") continue;
+    const weekPhase = resolveWeekPhase(week.phase, week.weekNumber, phaseCtx);
+    for (const s of (week.sessions ?? []) as PlanSession[]) {
+      if ((s as { isRest?: boolean }).isRest || s.sport === "rest" || s.custom || isRaceEventTitle(s)) continue;
+      const fiche = ficheFor(s.catalogId);
+      if (!fiche || !isRaceProximityFiche(fiche)) continue;
+      const base = { sport: normSport(s.sport), weekPhase, targetDur: s.durationMin ?? 0, original: fiche, ledger,
+        objectiveKey: phaseCtx?.objectiveKey, levelSignal: phaseCtx?.beginnerIntensitySignal,
+        weekZoneCap: resolveRepairWeekZoneCap(week, quotaEntry), weekType };
+      const repl = findReplacement(base, fiche.id) ?? taperFallback(s, fiche, weekPhase, week, quotaEntry, ledger, phaseCtx);
+      if (repl) {
+        assignFiche(s, repl, s.durationMin, ledger);
+        counters.race_proximity_repaired = (counters.race_proximity_repaired ?? 0) + 1;
+        logs.push(`[race_proximity_repaired] W${week.weekNumber}/${s.day} ${fiche.id} → ${repl.id} (semaine ${weekType})`);
+      } else {
+        counters.reconcile_conflict++;
+        logs.push(`[race_proximity_unresolved] W${week.weekNumber}/${s.day} ${fiche.id} — aucune fiche compatible hors semaine de course`);
+      }
+    }
+  }
 }
 
 function taperFallback(s: PlanSession, fiche: LibraryWorkout, weekPhase: PlanPhase, week: { weeklyNotes?: string | null; theme?: string | null }, quotaEntry: WeekQuotaEntry | null, ledger: UsageLedger | undefined, phaseCtx?: PhaseCtx): LibraryWorkout | null {
@@ -2529,6 +2569,7 @@ export function runReconciler(
   hydrateDilutedZones(chunks, counters, logs);
   enforceDemandingAccumulation(chunks, opts.beginnerIntensitySignal, counters, logs, usageLedger, injected, phaseCtx, quotasByWeek);
   enforceSpecificPhaseIntensity(chunks, counters, logs, usageLedger, injected, phaseCtx, quotasByWeek, opts.intermediateRaces);
+  repairRaceProximityOutsideRaceWeek(chunks, quotasByWeek, counters, logs, usageLedger, phaseCtx);
   enforceAthleteConstraints(chunks, parseAthleteConstraints(opts.constraints), counters, logs);
   enforceMaxSessionsPerDay(chunks, opts.maxSessionsPerDay, counters, logs);
   // Last mutation: day-moving repairs cannot reintroduce training on race day.
