@@ -1962,11 +1962,11 @@ export default function AITrainingPlanPage() {
     }
   };
 
-  // Courses de la fiche de l'athlète qui tombent pendant ce plan sans y être (ajout en un geste, jamais automatique).
+  // Courses de la fiche de l'athlète qui tombent pendant ce plan sans y être : simple alerte à la génération
+  // (le coach les ajoute via « Ajouter un objectif intermédiaire » ; bouton dédié retiré le 27/11/2026).
   const registeredRacesMissing = useMemo(() => missingRegisteredRaces(savedAthleteRaceGoals, raceGoals, {
     planStart: format(planStartDate, "yyyy-MM-dd"), mainRaceDate: raceDate || null,
   }), [savedAthleteRaceGoals, raceGoals, planStartDate, raceDate]);
-  const addRegisteredRaces = () => setRaceGoals(prev => [...prev, ...registeredRacesMissing]);
 
   const handleGenerate = async (extraConstraints?: string, prevalidateOnly=false) => {
     // Une génération complète invalide toute régénération ciblée précédente.
@@ -4069,19 +4069,6 @@ export default function AITrainingPlanPage() {
                   </div>
                   );
                 })}
-
-                {registeredRacesMissing.length > 0 && (
-                  <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 space-y-2">
-                    <p className="text-xs">
-                      <b>Courses de la fiche absentes de ce plan :</b>{" "}
-                      {registeredRacesMissing.map(r => `${r.raceName || r.objective} · ${OBJECTIVE_OPTIONS.find(o => o.value === r.objective)?.label ?? r.objective} · ${r.raceDate.split("-").reverse().join("/")}`).join(" ; ")}
-                    </p>
-                    <Button variant="outline" size="sm" className="w-full min-h-11 text-xs gap-1.5" onClick={addRegisteredRaces}>
-                      <Plus className="h-3.5 w-3.5" />
-                      Ajouter {registeredRacesMissing.length > 1 ? "ces courses" : "cette course"} au plan (priorité B, modifiable)
-                    </Button>
-                  </div>
-                )}
 
                 <Button
                   variant="outline"
